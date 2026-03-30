@@ -102,6 +102,158 @@ export function getProductById(id) {
   })
 }
 
+// ──────────────────────────────────────────────────────────────────
+// Coupon mock data & API helpers
+// ──────────────────────────────────────────────────────────────────
+
+const coupons = [
+  {
+    id: 1,
+    name: '全场通用券',
+    value: 10,
+    minAmount: 100,
+    startDate: '2026-03-01',
+    endDate: '2026-04-30',
+    category: '全场通用',
+    type: 'general',
+    totalCount: 5000,
+    remainCount: 1238,
+  },
+  {
+    id: 2,
+    name: '手机数码专属券',
+    value: 50,
+    minAmount: 500,
+    startDate: '2026-03-15',
+    endDate: '2026-04-15',
+    category: '手机数码',
+    type: 'category',
+    totalCount: 2000,
+    remainCount: 356,
+  },
+  {
+    id: 3,
+    name: '家用电器优惠券',
+    value: 100,
+    minAmount: 1000,
+    startDate: '2026-03-01',
+    endDate: '2026-03-31',
+    category: '家用电器',
+    type: 'category',
+    totalCount: 1000,
+    remainCount: 0,
+  },
+  {
+    id: 4,
+    name: '新人专享券',
+    value: 20,
+    minAmount: 50,
+    startDate: '2026-03-20',
+    endDate: '2026-05-20',
+    category: '全场通用',
+    type: 'newuser',
+    totalCount: 10000,
+    remainCount: 4521,
+  },
+  {
+    id: 5,
+    name: '服装配饰折扣券',
+    value: 30,
+    minAmount: 200,
+    startDate: '2026-02-01',
+    endDate: '2026-02-28',
+    category: '服装配饰',
+    type: 'category',
+    totalCount: 3000,
+    remainCount: 420,
+  },
+  {
+    id: 6,
+    name: '美妆护肤专属券',
+    value: 80,
+    minAmount: 600,
+    startDate: '2026-03-08',
+    endDate: '2026-04-08',
+    category: '美妆护肤',
+    type: 'category',
+    totalCount: 1500,
+    remainCount: 721,
+  },
+  {
+    id: 7,
+    name: '满200减15通用券',
+    value: 15,
+    minAmount: 200,
+    startDate: '2026-04-01',
+    endDate: '2026-04-30',
+    category: '全场通用',
+    type: 'general',
+    totalCount: 8000,
+    remainCount: 7850,
+  },
+  {
+    id: 8,
+    name: '图书音像专享券',
+    value: 5,
+    minAmount: 30,
+    startDate: '2026-03-10',
+    endDate: '2026-05-10',
+    category: '图书音像',
+    type: 'category',
+    totalCount: 5000,
+    remainCount: 2134,
+  },
+]
+
+// Returns all coupons with claim status merged from localStorage
+export function getCoupons() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const claimedIds = JSON.parse(localStorage.getItem('jd_claimed_coupons') || '[]')
+      const today = new Date().toISOString().slice(0, 10)
+      const list = coupons.map(c => {
+        const isClaimed = claimedIds.includes(c.id)
+        let status = 'available'
+        if (c.endDate < today) {
+          status = 'expired'
+        } else if (isClaimed) {
+          status = 'claimed'
+        } else if (c.remainCount <= 0) {
+          status = 'soldout'
+        }
+        return { ...c, status, isClaimed }
+      })
+      resolve(list)
+    }, 200)
+  })
+}
+
+// Claims a coupon by id, persists to localStorage
+export function claimCoupon(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const claimedIds = JSON.parse(localStorage.getItem('jd_claimed_coupons') || '[]')
+      if (claimedIds.includes(id)) {
+        reject(new Error('已领取过该优惠券'))
+        return
+      }
+      const coupon = coupons.find(c => c.id === id)
+      if (!coupon) {
+        reject(new Error('优惠券不存在'))
+        return
+      }
+      if (coupon.remainCount <= 0) {
+        reject(new Error('优惠券已抢完'))
+        return
+      }
+      coupon.remainCount -= 1
+      claimedIds.push(id)
+      localStorage.setItem('jd_claimed_coupons', JSON.stringify(claimedIds))
+      resolve({ success: true })
+    }, 300)
+  })
+}
+
 export function getFlashSaleProducts() {
   return Promise.resolve(products.filter(p => p.isHot).slice(0, 6))
 }
