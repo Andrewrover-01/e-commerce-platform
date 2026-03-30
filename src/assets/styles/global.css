@@ -1,0 +1,368 @@
+/* ============================================================
+   京东商城 (JD.com) 全局 CSS — 主题变量 + 基础样式
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   1. CSS 自定义属性（主题变量）
+   ---------------------------------------------------------- */
+:root {
+  /* --- 品牌主色（京东红） --- */
+  --color-primary:        #e1251b;   /* 标准京东红 */
+  --color-primary-dark:   #c0201a;   /* 悬停 / 按下态 */
+  --color-primary-light:  #f5c6c4;   /* 浅红背景 / tag 底色 */
+  --color-primary-pale:   #fff0ef;   /* 极浅红（提示区块背景） */
+
+  /* --- 辅助色 --- */
+  --color-success:        #26a65b;
+  --color-warning:        #f5a623;
+  --color-danger:         #e1251b;
+  --color-info:           #1890ff;
+
+  /* --- 文字色 --- */
+  --color-text-primary:   #333333;   /* 主标题 / 重要正文 */
+  --color-text-regular:   #666666;   /* 普通正文 */
+  --color-text-secondary: #999999;   /* 次要说明文字 */
+  --color-text-placeholder:#cccccc;  /* 输入框 placeholder */
+  --color-text-white:     #ffffff;
+
+  /* --- 价格色 --- */
+  --color-price:          #e1251b;   /* 现价 */
+  --color-price-origin:   #999999;   /* 划线原价 */
+
+  /* --- 背景色 --- */
+  --color-bg-page:        #f7f7f7;   /* 页面底色 */
+  --color-bg-white:       #ffffff;
+  --color-bg-header:      #e1251b;   /* 顶部导航栏背景 */
+  --color-bg-nav:         #be1a17;   /* 导航辅助栏背景 */
+
+  /* --- 边框色 --- */
+  --color-border-base:    #e0e0e0;
+  --color-border-light:   #f0f0f0;
+  --color-border-focus:   #e1251b;
+
+  /* --- 阴影 --- */
+  --shadow-sm:  0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md:  0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg:  0 4px 16px rgba(0, 0, 0, 0.16);
+  --shadow-card-hover: 0 4px 20px rgba(225, 37, 27, 0.18);
+
+  /* --- 圆角 --- */
+  --radius-sm:  2px;
+  --radius-md:  4px;
+  --radius-lg:  8px;
+  --radius-xl:  12px;
+  --radius-full: 9999px;
+
+  /* --- 字体 --- */
+  --font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC',
+                 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  --font-size-xs:   12px;
+  --font-size-sm:   13px;
+  --font-size-base: 14px;
+  --font-size-md:   15px;
+  --font-size-lg:   16px;
+  --font-size-xl:   18px;
+  --font-size-2xl:  20px;
+  --font-size-3xl:  24px;
+
+  /* --- 行高 --- */
+  --line-height-tight:  1.25;
+  --line-height-base:   1.5;
+  --line-height-loose:  1.75;
+
+  /* --- 间距基准（8px 网格） --- */
+  --spacing-1:  4px;
+  --spacing-2:  8px;
+  --spacing-3:  12px;
+  --spacing-4:  16px;
+  --spacing-5:  20px;
+  --spacing-6:  24px;
+  --spacing-8:  32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+
+  /* --- 布局 --- */
+  --container-width: 1190px;
+  --header-height:   84px;
+  --nav-height:      44px;
+  --sidebar-width:   220px;
+
+  /* --- 过渡动画 --- */
+  --transition-fast:   all 0.15s ease;
+  --transition-base:   all 0.25s ease;
+  --transition-slow:   all 0.35s ease;
+
+  /* --- z-index 层级 --- */
+  --z-dropdown:  100;
+  --z-sticky:    200;
+  --z-fixed:     300;
+  --z-modal:     1000;
+  --z-toast:     1100;
+}
+
+/* ----------------------------------------------------------
+   2. CSS Reset / 基础归一化
+   ---------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- 链接 --- */
+a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+a:hover {
+  color: var(--color-primary);
+}
+
+/* --- 列表 --- */
+ul,
+ol {
+  list-style: none;
+}
+
+/* --- 图片 --- */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* --- 按钮 --- */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* --- 输入框 --- */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
+
+/* --- 分割线 --- */
+hr {
+  border: none;
+  border-top: 1px solid var(--color-border-light);
+  margin: var(--spacing-4) 0;
+}
+
+/* ----------------------------------------------------------
+   3. 工具类
+   ---------------------------------------------------------- */
+
+/* 版心容器 */
+.container {
+  width: var(--container-width);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--spacing-4);
+}
+
+/* Flex 辅助 */
+.flex          { display: flex; }
+.flex-center   { display: flex; align-items: center; justify-content: center; }
+.flex-between  { display: flex; align-items: center; justify-content: space-between; }
+.flex-wrap     { flex-wrap: wrap; }
+.flex-col      { flex-direction: column; }
+.flex-1        { flex: 1; }
+
+/* 文字截断 */
+.text-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 价格样式 */
+.price {
+  color: var(--color-price);
+  font-weight: 700;
+}
+.price-origin {
+  color: var(--color-price-origin);
+  text-decoration: line-through;
+  font-size: var(--font-size-sm);
+}
+
+/* 徽标 / tag */
+.badge {
+  display: inline-block;
+  padding: 0 var(--spacing-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  line-height: 18px;
+  font-weight: 600;
+}
+.badge-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.badge-orange {
+  background: #ff6700;
+  color: #fff;
+}
+.badge-new {
+  background: #26a65b;
+  color: #fff;
+}
+
+/* ----------------------------------------------------------
+   4. 按钮组件样式
+   ---------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--spacing-5);
+  height: 36px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  transition: var(--transition-fast);
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.btn-outline:hover {
+  background: var(--color-primary-pale);
+}
+
+.btn-large {
+  height: 44px;
+  padding: 0 var(--spacing-8);
+  font-size: var(--font-size-lg);
+  border-radius: var(--radius-md);
+}
+
+.btn-small {
+  height: 28px;
+  padding: 0 var(--spacing-3);
+  font-size: var(--font-size-xs);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------
+   5. 卡片 / 面板
+   ---------------------------------------------------------- */
+.card {
+  background: var(--color-bg-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* ----------------------------------------------------------
+   6. 表单控件
+   ---------------------------------------------------------- */
+.form-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  transition: border-color 0.2s;
+  background: #fff;
+}
+.form-input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px rgba(225, 37, 27, 0.12);
+}
+.form-input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+/* ----------------------------------------------------------
+   7. 加载状态
+   ---------------------------------------------------------- */
+.loading-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-border-light);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ----------------------------------------------------------
+   8. 滚动条（Webkit）
+   ---------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-page);
+}
+::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
