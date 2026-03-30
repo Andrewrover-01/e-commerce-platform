@@ -61,6 +61,7 @@ export function getProducts(params = {}) {
       else if (params.sort === 'price_desc') list.sort((a, b) => b.price - a.price)
       else if (params.sort === 'sales') list.sort((a, b) => b.sales - a.sales)
       else if (params.sort === 'rating') list.sort((a, b) => b.rating - a.rating)
+      else if (params.sort === 'newest') list.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || b.id - a.id)
       const page = params.page || 1
       const pageSize = params.pageSize || 12
       const total = list.length
