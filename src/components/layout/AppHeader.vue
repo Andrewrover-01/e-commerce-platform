@@ -23,6 +23,8 @@
           <span class="nav-divider">|</span>
           <router-link to="/user" class="nav-link-btn">我的京东</router-link>
           <span class="nav-divider">|</span>
+          <router-link to="/coupons" class="nav-link-btn">优惠券</router-link>
+          <span class="nav-divider">|</span>
           <a href="#" class="nav-link-btn">京东会员</a>
           <span class="nav-divider">|</span>
           <a href="#" class="nav-link-btn">企业采购</a>
