@@ -1,72 +1,84 @@
 <template>
   <div class="home-page">
-
-    <!-- ── 顶部横幅轮播 ── -->
     <div class="home-banner">
       <div class="container">
-        <Carousel :slides="bannerSlides" :interval="4500" />
+        <el-card shadow="never" class="banner-card">
+          <Carousel :slides="bannerSlides" :interval="4500" />
+        </el-card>
       </div>
     </div>
 
-    <!-- ── 秒杀 / 热销 ── -->
     <div class="container">
       <section class="home-section">
         <div class="section-header">
-          <h2 class="section-title">
-            <span class="title-icon">🔥</span>热销爆款
-          </h2>
-          <router-link :to="{ path: '/products', query: { sort: 'sales' } }" class="section-more">
-            查看全部 →
-          </router-link>
+          <h2 class="section-title"><span class="title-icon">🔥</span>热销爆款</h2>
+          <router-link :to="{ path: '/products', query: { sort: 'sales' } }" class="section-more">查看全部 →</router-link>
         </div>
-        <div v-if="hotLoading" class="section-loading">
-          <span class="loading-spinner" />
-        </div>
-        <div v-else class="product-grid">
-          <ProductCard
-            v-for="product in hotProducts"
-            :key="product.id"
-            :product="product"
-          />
-        </div>
+
+        <el-skeleton v-if="hotLoading" :rows="4" animated />
+
+        <el-row v-else :gutter="16">
+          <el-col v-for="product in hotProducts" :key="product.id" :xs="24" :sm="12" :md="8" :lg="6">
+            <ProductCard :product="product" />
+          </el-col>
+        </el-row>
       </section>
 
-      <!-- ── 新品首发 ── -->
       <section class="home-section">
         <div class="section-header">
-          <h2 class="section-title">
-            <span class="title-icon">✨</span>新品首发
-          </h2>
-          <router-link :to="{ path: '/products', query: { sort: 'newest' } }" class="section-more">
-            查看全部 →
-          </router-link>
+          <h2 class="section-title"><span class="title-icon">✨</span>新品首发</h2>
+          <router-link :to="{ path: '/products', query: { sort: 'newest' } }" class="section-more">查看全部 →</router-link>
         </div>
-        <div v-if="newLoading" class="section-loading">
-          <span class="loading-spinner" />
-        </div>
-        <div v-else class="product-grid product-grid-4">
-          <ProductCard
-            v-for="product in newProducts"
-            :key="product.id"
-            :product="product"
-          />
-        </div>
+
+        <el-skeleton v-if="newLoading" :rows="4" animated />
+
+        <el-row v-else :gutter="16">
+          <el-col v-for="product in newProducts" :key="product.id" :xs="24" :sm="12" :md="8" :lg="6">
+            <ProductCard :product="product" />
+          </el-col>
+        </el-row>
       </section>
     </div>
 
+    <CouponDialog v-model:visible="couponVisible" :coupon-data="couponData" @claim="handleClaim">
+      <template #default="{ coupon }">
+        <el-card shadow="never" class="coupon-card">
+          <el-image :src="coupon.image" class="coupon-img" fit="cover" />
+          <div class="coupon-main">
+            <p class="coupon-money">¥{{ coupon.amount }}</p>
+            <p class="coupon-line">满{{ coupon.threshold }}可用</p>
+            <p class="coupon-line">有效期至 {{ coupon.expireAt }}</p>
+          </div>
+        </el-card>
+      </template>
+      <template #footer>
+        <el-button @click="couponVisible = false">稍后再说</el-button>
+        <el-button type="danger" @click="handleClaim">立即领取</el-button>
+      </template>
+    </CouponDialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import Carousel from '@/components/common/Carousel.vue'
 import ProductCard from '@/components/common/ProductCard.vue'
+import CouponDialog from '@/components/common/CouponDialog.vue'
 import { getHotProducts, getNewProducts } from '@/api/mock'
 
 const hotProducts = ref([])
 const newProducts = ref([])
 const hotLoading = ref(true)
 const newLoading = ref(true)
+
+const couponVisible = ref(true)
+const couponData = ref({
+  image: 'https://picsum.photos/640/320?random=201',
+  amount: 50,
+  threshold: 299,
+  expireAt: '2026-12-31',
+})
 
 const bannerSlides = [
   {
@@ -95,6 +107,12 @@ const bannerSlides = [
   },
 ]
 
+function handleClaim() {
+  console.log('领取优惠券', couponData.value)
+  ElMessage.success('领取成功')
+  couponVisible.value = false
+}
+
 onMounted(async () => {
   const [hot, newArr] = await Promise.all([getHotProducts(), getNewProducts()])
   hotProducts.value = hot
@@ -109,7 +127,6 @@ onMounted(async () => {
   padding-bottom: var(--spacing-10);
 }
 
-/* ── 轮播横幅 ── */
 .home-banner {
   background: #fff;
   padding: var(--spacing-4) 0;
@@ -117,7 +134,10 @@ onMounted(async () => {
   border-bottom: 1px solid var(--color-border-light);
 }
 
-/* ── 板块公用 ── */
+.banner-card {
+  border: none;
+}
+
 .home-section {
   margin-bottom: var(--spacing-8);
 }
@@ -139,35 +159,37 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-2);
 }
-.title-icon {
-  font-size: var(--font-size-xl);
-}
 
 .section-more {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
-  transition: var(--transition-fast);
   text-decoration: none;
 }
-.section-more:hover {
-  color: var(--color-primary);
+
+.coupon-card {
+  border: none;
 }
 
-/* ── 商品网格 ── */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-4);
+.coupon-img {
+  width: 100%;
+  height: 180px;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-3);
 }
 
-.product-grid-4 {
-  grid-template-columns: repeat(4, 1fr);
+.coupon-main {
+  text-align: center;
 }
 
-/* ── 加载中 ── */
-.section-loading {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-10) 0;
+.coupon-money {
+  color: var(--color-price);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: var(--spacing-2);
+}
+
+.coupon-line {
+  color: var(--color-text-secondary);
 }
 </style>
