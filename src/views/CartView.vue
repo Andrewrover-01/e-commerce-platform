@@ -100,7 +100,7 @@ const selectedPrice = computed(() => cartStore.selectedPrice)
 const allSelected = computed(() => items.value.length > 0 && items.value.every(i => i.selected))
 
 function updateQty(productId, val) {
-  cartStore.updateQuantity(productId, Math.max(1, Number(val || 1)))
+  cartStore.updateQuantity(productId, Math.max(1, Number(val ?? 1)))
 }
 
 function deleteSelected() {
