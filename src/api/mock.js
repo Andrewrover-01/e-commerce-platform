@@ -3,7 +3,6 @@ import request from '@/utils/request'
 const MOCK_DELAY = 200
 
 let categoriesCache = null
-let productsCache = null
 
 function delay(ms = MOCK_DELAY) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -17,10 +16,10 @@ async function loadCategories() {
 }
 
 async function loadProducts() {
-  if (productsCache) return productsCache
-  const { data } = await request.get('/mock/products.json')
-  productsCache = data
-  return productsCache
+  const { data } = await request.get('/mock/products.json', {
+    params: { _t: Date.now() }
+  })
+  return data
 }
 
 export async function getCategories() {
