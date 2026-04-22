@@ -118,7 +118,8 @@ function saveOrders() {
 }
 
 function handleSubmit() {
-  const orderNo = `ORD-${Date.now()}`
+  const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase().padEnd(6, '0').slice(0, 6)
+  const orderNo = `ORD-${Date.now()}-${randomPart}`
   const order = {
     id: orderNo,
     date: new Date().toLocaleDateString('zh-CN'),

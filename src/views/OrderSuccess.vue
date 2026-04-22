@@ -13,7 +13,10 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const orderNo = computed(() => route.query.orderNo || '未知订单号')
+const orderNo = computed(() => {
+  const value = String(route.query.orderNo || '')
+  return /^ORD-\d+-[A-Z0-9]{6}$/.test(value) ? value : '无效订单号'
+})
 </script>
 
 <style scoped>
