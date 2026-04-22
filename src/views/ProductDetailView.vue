@@ -106,12 +106,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch, toRefs } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { getProductById } from '@/api/mock'
 
-const route = useRoute()
+const { id } = toRefs(defineProps(['id']))
 const router = useRouter()
 const cartStore = useCartStore()
 
@@ -137,7 +137,7 @@ const savedAmount = computed(() => {
 async function loadProduct() {
   loading.value = true
   try {
-    product.value = await getProductById(route.params.id)
+    product.value = await getProductById(id.value)
     activeImage.value = product.value.images[0]
     qty.value = 1
   } catch {
@@ -170,7 +170,7 @@ function formatCount(val) {
 }
 
 onMounted(loadProduct)
-watch(() => route.params.id, loadProduct)
+watch(id, loadProduct)
 </script>
 
 <style scoped>

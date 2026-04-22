@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/user'
 const routes = [
   { path: '/', name: 'Home', component: () => import('@/views/HomeView.vue') },
   { path: '/products', name: 'ProductList', component: () => import('@/views/ProductListView.vue') },
-  { path: '/product/:id', name: 'ProductDetail', component: () => import('@/views/ProductDetailView.vue') },
+  { path: '/product/:id', name: 'ProductDetail', component: () => import('@/views/ProductDetailView.vue'), props: true },
   { path: '/cart', name: 'Cart', component: () => import('@/views/CartView.vue') },
   { path: '/login', name: 'Login', component: () => import('@/views/LoginView.vue') },
   { path: '/register', name: 'Register', component: () => import('@/views/RegisterView.vue') },
