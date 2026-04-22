@@ -9,7 +9,8 @@ const routes = [
   { path: '/login', name: 'Login', component: () => import('@/views/LoginView.vue') },
   { path: '/register', name: 'Register', component: () => import('@/views/RegisterView.vue') },
   { path: '/order', name: 'Order', component: () => import('@/views/OrderView.vue'), meta: { requiresAuth: true } },
-  { path: '/user', name: 'UserCenter', component: () => import('@/views/UserCenterView.vue'), meta: { requiresAuth: true } }
+  { path: '/user', name: 'UserCenter', component: () => import('@/views/UserCenterView.vue'), meta: { requiresAuth: true } },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue') }
 ]
 
 const router = createRouter({
