@@ -98,8 +98,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 
+const router = useRouter()
 const cartStore = useCartStore()
 
 const pendingItems = computed(() => cartStore.selectedItems)
@@ -116,8 +118,10 @@ function saveOrders() {
 }
 
 function handleSubmit() {
+  const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase().padEnd(6, '0').slice(0, 6)
+  const orderNo = `ORD-${Date.now()}-${randomPart}`
   const order = {
-    id: 'JD' + Date.now(),
+    id: orderNo,
     date: new Date().toLocaleDateString('zh-CN'),
     status: 'pending',
     items: pendingItems.value.map(i => ({ ...i })),
@@ -127,6 +131,7 @@ function handleSubmit() {
   orders.value.unshift(order)
   saveOrders()
   cartStore.clearCart()
+  router.push({ path: '/order/success', query: { orderNo } })
 }
 
 function payOrder(order) {

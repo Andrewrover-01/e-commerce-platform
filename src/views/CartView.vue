@@ -69,6 +69,7 @@
           <el-space>
             <el-checkbox :model-value="allSelected" @change="cartStore.selectAll">全选</el-checkbox>
             <el-button link type="danger" @click="deleteSelected">删除选中</el-button>
+            <el-button link type="danger" @click="cartStore.clearCart">清空购物车</el-button>
           </el-space>
 
           <el-space>
