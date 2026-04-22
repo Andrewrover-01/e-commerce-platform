@@ -106,17 +106,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, toRefs } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { getProductById } from '@/api/mock'
 
-const { id } = toRefs(defineProps({
+const props = defineProps({
   id: {
     type: String,
     required: true
   }
-}))
+})
+const id = computed(() => props.id)
 const router = useRouter()
 const cartStore = useCartStore()
 
