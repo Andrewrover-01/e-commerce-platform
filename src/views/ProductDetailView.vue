@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, toRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { getProductById } from '@/api/mock'
@@ -117,7 +117,7 @@ const props = defineProps({
     required: true
   }
 })
-const id = computed(() => props.id)
+const id = toRef(props, 'id')
 const router = useRouter()
 const cartStore = useCartStore()
 
