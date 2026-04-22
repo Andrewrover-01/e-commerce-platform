@@ -111,7 +111,12 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { getProductById } from '@/api/mock'
 
-const { id } = toRefs(defineProps(['id']))
+const { id } = toRefs(defineProps({
+  id: {
+    type: String,
+    required: true
+  }
+}))
 const router = useRouter()
 const cartStore = useCartStore()
 
