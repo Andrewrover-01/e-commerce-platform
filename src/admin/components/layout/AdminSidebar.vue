@@ -45,6 +45,15 @@
         <el-menu-item index="/admin/users">用户列表</el-menu-item>
       </el-sub-menu>
 
+      <el-sub-menu index="marketing">
+        <template #title>
+          <el-icon><Ticket /></el-icon>
+          <span>营销工具</span>
+        </template>
+        <el-menu-item index="/admin/marketing/coupons">优惠券</el-menu-item>
+        <el-menu-item index="/admin/marketing/activities">秒杀/拼团</el-menu-item>
+      </el-sub-menu>
+
       <el-sub-menu index="finance">
         <template #title>
           <el-icon><Money /></el-icon>
@@ -76,7 +85,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Setting, Odometer, Goods, List,
-  UserFilled, Money, Document
+  UserFilled, Money, Document, Ticket
 } from '@element-plus/icons-vue'
 
 defineProps({

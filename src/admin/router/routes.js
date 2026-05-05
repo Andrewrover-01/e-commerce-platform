@@ -49,6 +49,17 @@ export const adminRoutes = [
         name: 'AdminUsers',
         component: () => import('@/admin/views/AdminUsersView.vue'),
       },
+      // Marketing
+      {
+        path: 'marketing/coupons',
+        name: 'AdminCoupons',
+        component: () => import('@/admin/views/AdminCouponsView.vue'),
+      },
+      {
+        path: 'marketing/activities',
+        name: 'AdminActivities',
+        component: () => import('@/admin/views/AdminActivitiesView.vue'),
+      },
       // Finance
       {
         path: 'finance/overview',
