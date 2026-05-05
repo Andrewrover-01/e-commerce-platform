@@ -264,9 +264,18 @@ function handleImport(e) {
   const file = e.target.files?.[0]
   if (!file) return
   const reader = new FileReader()
+  reader.onerror = () => ElMessage.error('文件读取失败，请检查文件格式')
   reader.onload = ev => {
-    const count = store.importCSV(ev.target.result)
-    ElMessage.success(`成功导入 ${count} 件商品`)
+    try {
+      const count = store.importCSV(ev.target.result)
+      if (count > 0) {
+        ElMessage.success(`成功导入 ${count} 件商品`)
+      } else {
+        ElMessage.warning('未导入任何数据，请确认 CSV 文件格式是否正确')
+      }
+    } catch {
+      ElMessage.error('CSV 解析失败，请检查文件格式')
+    }
   }
   reader.readAsText(file, 'utf-8')
   e.target.value = ''

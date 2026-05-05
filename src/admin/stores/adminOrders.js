@@ -43,7 +43,7 @@ const STATUSES = ['paid', 'paid', 'shipped', 'shipped', 'delivered', 'delivered'
 
 function generateOrders(count = 80) {
   return Array.from({ length: count }, (_, i) => {
-    const id = 10000000 + i + 1
+    const id = 10000 + i + 1
     const status = STATUSES[i % STATUSES.length]
     const buyer = BUYERS[i % BUYERS.length]
     const itemCount = (i % 3) + 1

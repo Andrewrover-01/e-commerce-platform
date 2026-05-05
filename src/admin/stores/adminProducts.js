@@ -17,6 +17,7 @@ export const useAdminProductsStore = defineStore('adminProducts', () => {
   const brands = ref([])
   const loading = ref(false)
   let nextId = 10000
+  let catCounter = 1000
 
   // ---------- init ----------
   async function init() {
@@ -29,13 +30,14 @@ export const useAdminProductsStore = defineStore('adminProducts', () => {
       ])
       products.value = res.list.map((p, i) => toAdminProduct(p, i))
       categories.value = cats.map(c => ({ ...c }))
-      // derive brands from products
+      // derive brands from products with numeric IDs
       const seen = new Set()
       const blist = []
       res.list.forEach(p => {
         if (!seen.has(p.brand)) {
           seen.add(p.brand)
-          blist.push({ id: p.brand, name: p.brand, logo: '', description: '' })
+          brandCounter++
+          blist.push({ id: brandCounter, name: p.brand, logo: '', description: '' })
         }
       })
       brands.value = blist
@@ -108,7 +110,8 @@ export const useAdminProductsStore = defineStore('adminProducts', () => {
 
   // ---------- Categories CRUD ----------
   function addCategory(data) {
-    categories.value.push({ id: Date.now(), name: data.name, icon: data.icon || '📦', sub: [] })
+    catCounter++
+    categories.value.push({ id: catCounter, name: data.name, icon: data.icon || '📦', sub: [] })
   }
   function updateCategory(id, data) {
     const c = categories.value.find(c => c.id === id)
@@ -119,8 +122,11 @@ export const useAdminProductsStore = defineStore('adminProducts', () => {
   }
 
   // ---------- Brands CRUD ----------
+  // Brand counter for IDs
+  let brandCounter = 0
   function addBrand(data) {
-    brands.value.push({ id: data.name, name: data.name, logo: data.logo || '', description: data.description || '' })
+    brandCounter++
+    brands.value.push({ id: brandCounter, name: data.name, logo: data.logo || '', description: data.description || '' })
   }
   function updateBrand(id, data) {
     const b = brands.value.find(b => b.id === id)

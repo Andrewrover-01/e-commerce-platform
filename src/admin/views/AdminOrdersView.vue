@@ -260,4 +260,8 @@ function doPrint() {
 .detail-total { text-align: right; margin-top: 12px; font-size: 14px; }
 .detail-total span { color: #f56c6c; font-size: 18px; font-weight: 700; }
 .print-header { text-align: center; font-size: 18px; padding: 12px 0 16px; border-bottom: 2px solid #303133; margin-bottom: 12px; }
+@media print {
+  body > * { display: none !important; }
+  #print-area { display: block !important; position: fixed; top: 0; left: 0; width: 100%; padding: 24px; }
+}
 </style>
