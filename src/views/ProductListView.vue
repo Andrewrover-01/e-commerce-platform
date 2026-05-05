@@ -1,98 +1,68 @@
 <template>
   <div class="product-list-page">
     <div class="container">
-      <div class="list-layout">
-
-        <!-- ── 左侧分类侧栏 ── -->
-        <aside class="sidebar">
-          <div class="sidebar-box">
-            <h3 class="sidebar-title">商品分类</h3>
-            <ul class="cat-list">
-              <li
-                class="cat-item"
-                :class="{ active: !activeCategoryId }"
-                @click="selectCategory(null)"
-              >全部商品</li>
-              <li
-                v-for="cat in categories"
-                :key="cat.id"
-                class="cat-item"
-                :class="{ active: activeCategoryId === cat.id }"
-                @click="selectCategory(cat)"
-              >
+      <el-row :gutter="24" align="top">
+        <el-col :span="5">
+          <el-card shadow="never">
+            <template #header>
+              <strong>商品分类</strong>
+            </template>
+            <el-menu :default-active="activeMenuKey" @select="onCategorySelect">
+              <el-menu-item index="all">全部商品</el-menu-item>
+              <el-menu-item v-for="cat in categories" :key="cat.id" :index="String(cat.id)">
                 <span class="cat-icon">{{ cat.icon }}</span>{{ cat.name }}
-              </li>
-            </ul>
-          </div>
-        </aside>
+              </el-menu-item>
+            </el-menu>
+          </el-card>
+        </el-col>
 
-        <!-- ── 右侧主内容 ── -->
-        <main class="list-main">
+        <el-col :span="19">
+          <el-breadcrumb class="list-breadcrumb" separator=">">
+            <el-breadcrumb-item><a @click.prevent="$router.push('/')">首页</a></el-breadcrumb-item>
+            <el-breadcrumb-item>{{ activeCategoryName || '全部商品' }}</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="keyword">{{ keyword }}</el-breadcrumb-item>
+          </el-breadcrumb>
 
-          <!-- 面包屑 + 结果数 -->
-          <div class="list-breadcrumb">
-            <span class="breadcrumb-home" @click="$router.push('/')">首页</span>
-            <span class="breadcrumb-sep">›</span>
-            <span v-if="activeCategoryName" class="breadcrumb-cat">{{ activeCategoryName }}</span>
-            <span v-else class="breadcrumb-cat">全部商品</span>
-            <span v-if="keyword" class="breadcrumb-kw"> — "{{ keyword }}"</span>
-            <span class="breadcrumb-total">共 {{ total }} 件商品</span>
-          </div>
+          <el-card shadow="never" class="sort-card">
+            <el-space wrap>
+              <el-button
+                v-for="opt in sortOptions"
+                :key="opt.value"
+                :type="sortKey === opt.value ? 'danger' : 'default'"
+                @click="setSort(opt.value)"
+              >
+                {{ opt.label }}
+              </el-button>
+              <el-text type="info">共 {{ total }} 件商品</el-text>
+            </el-space>
+          </el-card>
 
-          <!-- 排序栏 -->
-          <div class="sort-bar">
-            <button
-              v-for="opt in sortOptions"
-              :key="opt.value"
-              class="sort-btn"
-              :class="{ active: sortKey === opt.value }"
-              @click="setSort(opt.value)"
-            >{{ opt.label }}</button>
-          </div>
+          <el-skeleton v-if="loading" :rows="6" animated />
 
-          <!-- 商品网格 -->
-          <div v-if="loading" class="list-loading">
-            <span class="loading-spinner" />
-          </div>
           <template v-else>
-            <div v-if="products.length === 0" class="list-empty">
-              <p class="empty-icon">🔍</p>
-              <p class="empty-text">没有找到符合条件的商品</p>
-              <button class="btn btn-outline" @click="clearFilters">清除筛选</button>
-            </div>
-            <div v-else class="product-grid">
-              <ProductCard
-                v-for="product in products"
-                :key="product.id"
-                :product="product"
+            <el-empty v-if="products.length === 0" description="没有找到符合条件的商品">
+              <el-button @click="clearFilters">清除筛选</el-button>
+            </el-empty>
+
+            <el-row v-else :gutter="16">
+              <el-col v-for="product in products" :key="product.id" :xs="24" :sm="12" :md="8" :lg="6">
+                <ProductCard :product="product" />
+              </el-col>
+            </el-row>
+
+            <div v-if="totalPages > 1" class="pagination">
+              <el-pagination
+                v-model:current-page="page"
+                :page-size="pageSize"
+                layout="prev, pager, next"
+                :total="total"
+                background
+                @current-change="goPage"
               />
             </div>
-
-            <!-- 分页 -->
-            <div v-if="totalPages > 1" class="pagination">
-              <button
-                class="page-btn"
-                :disabled="page === 1"
-                @click="goPage(page - 1)"
-              >‹ 上一页</button>
-              <button
-                v-for="p in pageNumbers"
-                :key="p"
-                class="page-btn"
-                :class="{ active: p === page, ellipsis: p === '...' }"
-                :disabled="p === '...'"
-                @click="p !== '...' && goPage(p)"
-              >{{ p }}</button>
-              <button
-                class="page-btn"
-                :disabled="page === totalPages"
-                @click="goPage(page + 1)"
-              >下一页 ›</button>
-            </div>
           </template>
-
-        </main>
-      </div>
+        </el-col>
+      </el-row>
     </div>
   </div>
 </template>
@@ -129,21 +99,7 @@ const sortOptions = [
 ]
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
-const pageNumbers = computed(() => {
-  const all = []
-  const tp = totalPages.value
-  const cur = page.value
-  if (tp <= 7) {
-    for (let i = 1; i <= tp; i++) all.push(i)
-  } else {
-    all.push(1)
-    if (cur > 3) all.push('...')
-    for (let i = Math.max(2, cur - 1); i <= Math.min(tp - 1, cur + 1); i++) all.push(i)
-    if (cur < tp - 2) all.push('...')
-    all.push(tp)
-  }
-  return all
-})
+const activeMenuKey = computed(() => (activeCategoryId.value ? String(activeCategoryId.value) : 'all'))
 
 async function load() {
   loading.value = true
@@ -169,6 +125,15 @@ function selectCategory(cat) {
   load()
 }
 
+function onCategorySelect(index) {
+  if (index === 'all') {
+    selectCategory(null)
+    return
+  }
+  const cat = categories.value.find(c => String(c.id) === index)
+  if (cat) selectCategory(cat)
+}
+
 function setSort(val) {
   sortKey.value = val
   page.value = 1
@@ -192,7 +157,6 @@ function clearFilters() {
 
 onMounted(async () => {
   categories.value = await getCategories()
-  // Sync state from URL query
   const q = route.query
   if (q.sort) sortKey.value = q.sort
   if (q.category) {
@@ -216,173 +180,21 @@ watch(() => route.query.keyword, () => {
   padding: var(--spacing-6) 0 var(--spacing-10);
 }
 
-.list-layout {
-  display: flex;
-  gap: var(--spacing-6);
-  align-items: flex-start;
-}
-
-/* ── 侧栏 ── */
-.sidebar {
-  flex-shrink: 0;
-  width: 180px;
-}
-.sidebar-box {
-  background: var(--color-bg-white);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-.sidebar-title {
-  padding: var(--spacing-3) var(--spacing-4);
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  background: var(--color-primary);
-  color: #fff;
-}
-.cat-list {
-  padding: var(--spacing-2) 0;
-}
-.cat-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-regular);
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-.cat-item:hover {
-  color: var(--color-primary);
-  background: var(--color-primary-pale);
-}
-.cat-item.active {
-  color: var(--color-primary);
-  font-weight: 600;
-  background: var(--color-primary-pale);
-  border-right: 2px solid var(--color-primary);
-}
-.cat-icon {
-  font-size: 14px;
-}
-
-/* ── 主区 ── */
-.list-main {
-  flex: 1;
-  min-width: 0;
-}
-
 .list-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
   margin-bottom: var(--spacing-4);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
 }
-.breadcrumb-home {
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  transition: var(--transition-fast);
-}
-.breadcrumb-home:hover { color: var(--color-primary); }
-.breadcrumb-sep { color: #ccc; }
-.breadcrumb-cat { color: var(--color-text-primary); font-weight: 500; }
-.breadcrumb-kw { color: var(--color-primary); }
-.breadcrumb-total { margin-left: auto; color: var(--color-text-secondary); }
 
-/* 排序 */
-.sort-bar {
-  display: flex;
-  gap: var(--spacing-2);
+.sort-card {
   margin-bottom: var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-bg-white);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-.sort-btn {
-  padding: var(--spacing-1) var(--spacing-4);
-  border: 1px solid var(--color-border-base);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-regular);
-  background: #fff;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-.sort-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-.sort-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
 }
 
-/* 商品格 */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-4);
+.cat-icon {
+  margin-right: var(--spacing-1);
 }
 
-/* 空态 */
-.list-empty {
-  text-align: center;
-  padding: var(--spacing-12) 0;
-  background: var(--color-bg-white);
-  border-radius: var(--radius-md);
-}
-.empty-icon { font-size: 48px; margin-bottom: var(--spacing-3); }
-.empty-text { color: var(--color-text-secondary); margin-bottom: var(--spacing-4); }
-
-/* 加载 */
-.list-loading {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-12) 0;
-}
-
-/* 分页 */
 .pagination {
   display: flex;
   justify-content: center;
-  gap: var(--spacing-2);
   margin-top: var(--spacing-6);
 }
-.page-btn {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 var(--spacing-3);
-  border: 1px solid var(--color-border-base);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  background: #fff;
-  color: var(--color-text-regular);
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-.page-btn:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-.page-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-  font-weight: 700;
-}
-.page-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.page-btn.ellipsis {
-  border: none;
-  cursor: default;
-  background: transparent;
-}
 </style>
-
