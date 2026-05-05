@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { adminRoutes, setupAdminGuard } from '@/admin/router/routes'
 
 const routes = [
   { path: '/', name: 'Home', component: () => import('@/views/HomeView.vue') },
@@ -11,7 +12,8 @@ const routes = [
   { path: '/order', name: 'Order', component: () => import('@/views/OrderView.vue'), meta: { requiresAuth: true } },
   { path: '/order/success', name: 'OrderSuccess', component: () => import('@/views/OrderSuccess.vue'), meta: { requiresAuth: true } },
   { path: '/user', name: 'UserCenter', component: () => import('@/views/UserCenterView.vue'), meta: { requiresAuth: true } },
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue') }
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue') },
+  ...adminRoutes,
 ]
 
 const router = createRouter({
@@ -30,5 +32,7 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
+
+setupAdminGuard(router)
 
 export default router
