@@ -82,6 +82,22 @@ export const adminRoutes = [
         name: 'AdminNotices',
         component: () => import('@/admin/views/AdminNoticesView.vue'),
       },
+      {
+        path: 'content/articles',
+        name: 'AdminArticles',
+        component: () => import('@/admin/views/AdminArticlesView.vue'),
+      },
+      {
+        path: 'content/reviews',
+        name: 'AdminReviews',
+        component: () => import('@/admin/views/AdminReviewsView.vue'),
+      },
+      // Analytics
+      {
+        path: 'analytics',
+        name: 'AdminAnalytics',
+        component: () => import('@/admin/views/AdminAnalyticsView.vue'),
+      },
       // Settings
       {
         path: 'settings',

@@ -70,7 +70,14 @@
         </template>
         <el-menu-item index="/admin/content/banners">Banner管理</el-menu-item>
         <el-menu-item index="/admin/content/notices">公告管理</el-menu-item>
+        <el-menu-item index="/admin/content/articles">帮助文章</el-menu-item>
+        <el-menu-item index="/admin/content/reviews">用户评价</el-menu-item>
       </el-sub-menu>
+
+      <el-menu-item index="/admin/analytics">
+        <el-icon><DataLine /></el-icon>
+        <template #title>数据统计</template>
+      </el-menu-item>
 
       <el-menu-item index="/admin/settings">
         <el-icon><Setting /></el-icon>
@@ -85,7 +92,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Setting, Odometer, Goods, List,
-  UserFilled, Money, Document, Ticket
+  UserFilled, Money, Document, Ticket, DataLine
 } from '@element-plus/icons-vue'
 
 defineProps({
