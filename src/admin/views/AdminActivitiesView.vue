@@ -210,10 +210,12 @@ function openDialog(row) {
 async function handleSubmit() {
   await formRef.value.validate()
   const [startTime, endTime] = form.value.timeRange || []
-  const now = new Date().toLocaleString('zh-CN', { hour12: false })
-  const status = !startTime ? 'upcoming'
-    : startTime > now ? 'upcoming'
-    : endTime && endTime < now ? 'ended'
+  const now = new Date()
+  const start = startTime ? new Date(startTime) : null
+  const end = endTime ? new Date(endTime) : null
+  const status = !start ? 'upcoming'
+    : start > now ? 'upcoming'
+    : end && end < now ? 'ended'
     : 'active'
   const data = { ...form.value, startTime, endTime, status }
   delete data.timeRange

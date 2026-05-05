@@ -64,6 +64,8 @@ const routeNameMap = {
   AdminBanners: 'Banner管理',
   AdminNotices: '公告管理',
   AdminSettings: '系统设置',
+  AdminCoupons: '优惠券管理',
+  AdminActivities: '秒杀/拼团活动',
 }
 const currentRoute = computed(() => routeNameMap[route.name] || '')
 

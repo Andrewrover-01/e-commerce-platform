@@ -193,8 +193,15 @@ function confirmResetPwd() {
   newPassword.value = store.resetPassword(resetTarget.value.id)
 }
 function copyPwd() {
-  navigator.clipboard?.writeText(newPassword.value)
-  ElMessage.success('已复制到剪贴板')
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(newPassword.value).then(() => {
+      ElMessage.success('已复制到剪贴板')
+    }).catch(() => {
+      ElMessage.error('复制失败，请手动复制密码')
+    })
+  } else {
+    ElMessage.warning('当前环境不支持自动复制，请手动复制密码')
+  }
 }
 
 // behavior drawer

@@ -18,6 +18,7 @@ export const useAdminProductsStore = defineStore('adminProducts', () => {
   const loading = ref(false)
   let nextId = 10000
   let catCounter = 1000
+  let brandCounter = 0
 
   // ---------- init ----------
   async function init() {
@@ -122,8 +123,6 @@ export const useAdminProductsStore = defineStore('adminProducts', () => {
   }
 
   // ---------- Brands CRUD ----------
-  // Brand counter for IDs
-  let brandCounter = 0
   function addBrand(data) {
     brandCounter++
     brands.value.push({ id: brandCounter, name: data.name, logo: data.logo || '', description: data.description || '' })
