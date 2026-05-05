@@ -32,12 +32,15 @@
             <el-table-column prop="orders" label="订单数" width="100" align="center" />
             <el-table-column prop="refunds" label="退款数" width="100" align="center" />
             <el-table-column label="客单价" width="120">
-              <template #default="{ row }">¥{{ (row.revenue / row.orders).toFixed(2) }}</template>
+              <template #default="{ row }">¥{{ row.orders > 0 ? (row.revenue / row.orders).toFixed(2) : '—' }}</template>
             </el-table-column>
             <el-table-column label="退款率" width="100">
               <template #default="{ row }">
-                <el-progress :percentage="+(row.refunds / row.orders * 100).toFixed(1)" :stroke-width="8" :show-text="false" status="exception" style="width:80px;display:inline-block" />
-                <span style="font-size:12px;margin-left:4px">{{ (row.refunds / row.orders * 100).toFixed(1) }}%</span>
+                <template v-if="row.orders > 0">
+                  <el-progress :percentage="+(row.refunds / row.orders * 100).toFixed(1)" :stroke-width="8" :show-text="false" status="exception" style="width:80px;display:inline-block" />
+                  <span style="font-size:12px;margin-left:4px">{{ (row.refunds / row.orders * 100).toFixed(1) }}%</span>
+                </template>
+                <span v-else style="color:#c0c4cc">—</span>
               </template>
             </el-table-column>
           </el-table>
