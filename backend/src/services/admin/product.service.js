@@ -2,6 +2,7 @@
 
 const productRepo = require('../../repositories/product.repository')
 const categoryRepo = require('../../repositories/category.repository')
+const AppError = require('../../utils/app-error')
 
 class AdminProductService {
   async getList(params = {}) {
@@ -41,7 +42,37 @@ class AdminProductService {
     return true
   }
 
-  // Categories management
+  /**
+   * Batch-update stock for multiple products in a single request.
+   * @param {Array<{ id: string, stock: number }>} items
+   * @returns {Promise<{ updated: number, errors: Array<{ id: string, message: string }> }>}
+   */
+  async batchUpdateStock(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw AppError.badRequest('items 不能为空')
+    }
+
+    const results = { updated: 0, errors: [] }
+
+    for (const item of items) {
+      const { id, stock } = item
+      if (stock === undefined || stock === null || stock < 0) {
+        results.errors.push({ id, message: '库存值无效（必须 >= 0）' })
+        continue
+      }
+      const product = await productRepo.findById(id)
+      if (!product) {
+        results.errors.push({ id, message: '商品不存在' })
+        continue
+      }
+      await productRepo.update(id, { stock: Number(stock) })
+      results.updated++
+    }
+
+    return results
+  }
+
+  // ── Categories management ────────────────────────────────────────────
   async getCategoryList() {
     return categoryRepo.findAll()
   }
