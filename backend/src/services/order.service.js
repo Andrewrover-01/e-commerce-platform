@@ -2,15 +2,16 @@
 
 const orderRepo = require('../repositories/order.repository')
 const productRepo = require('../repositories/product.repository')
+const couponService = require('./coupon.service')
 const { ORDER_STATUS } = require('../models/order.model')
 
 class OrderService {
   async create(userId, data) {
-    const { items, address, couponId, remark } = data
+    const { items, address, couponCode, remark } = data
 
     if (!items || items.length === 0) throw new Error('订单商品不能为空')
 
-    // Calculate totals
+    // ── Phase 1: validate stock and compute line totals ──────────────────
     let totalAmount = 0
     const enrichedItems = []
     for (const item of items) {
@@ -28,20 +29,51 @@ class OrderService {
       })
     }
 
+    // ── Phase 2: apply coupon if provided ────────────────────────────────
+    let discountAmount = 0
+    let appliedUserCoupon = null
+    let appliedCouponId = null
+
+    if (couponCode) {
+      const result = await couponService.applyUserCoupon(userId, couponCode, totalAmount)
+      discountAmount = result.discount
+      appliedUserCoupon = result.userCoupon
+      appliedCouponId = result.couponId
+    }
+
+    const payAmount = Math.max(0, parseFloat((totalAmount - discountAmount).toFixed(2)))
+
     const orderNo = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`
 
+    // ── Phase 3: persist order ───────────────────────────────────────────
     const order = await orderRepo.create({
       orderNo,
       userId,
       items: enrichedItems,
       totalAmount,
-      discountAmount: 0,
-      payAmount: totalAmount,
+      discountAmount,
+      payAmount,
       address,
-      couponId: couponId || null,
+      couponId: appliedCouponId,
       remark: remark || '',
       status: ORDER_STATUS.PENDING_PAYMENT,
     })
+
+    // ── Phase 4: deduct stock ────────────────────────────────────────────
+    for (const item of enrichedItems) {
+      const product = await productRepo.findById(item.productId)
+      if (product) {
+        await productRepo.update(product.id, {
+          stock: product.stock - item.quantity,
+          sales: product.sales + item.quantity,
+        })
+      }
+    }
+
+    // ── Phase 5: mark user coupon as used ────────────────────────────────
+    if (appliedUserCoupon) {
+      await couponService.markUsed(appliedUserCoupon.id, order.id)
+    }
 
     return order
   }
@@ -66,6 +98,18 @@ class OrderService {
     if (!order) throw new Error('订单不存在')
     if (order.userId !== userId) throw new Error('无权操作该订单')
     if (order.status !== ORDER_STATUS.PENDING_PAYMENT) throw new Error('只能取消待支付的订单')
+
+    // Restore stock on cancel
+    for (const item of order.items) {
+      const product = await productRepo.findById(item.productId)
+      if (product) {
+        await productRepo.update(product.id, {
+          stock: product.stock + item.quantity,
+          sales: Math.max(0, product.sales - item.quantity),
+        })
+      }
+    }
+
     return orderRepo.update(orderId, { status: ORDER_STATUS.CANCELLED })
   }
 }
