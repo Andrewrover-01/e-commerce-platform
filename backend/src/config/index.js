@@ -16,6 +16,18 @@ const config = {
     origins: (process.env.CORS_ORIGINS || 'http://localhost:5173').split(','),
   },
 
+  rateLimit: {
+    // Global API limiter
+    apiWindowMs: parseInt(process.env.RATE_API_WINDOW_MS, 10) || 60 * 1000,
+    apiMax:      parseInt(process.env.RATE_API_MAX, 10)       || 300,
+    // Write-operation limiter
+    writeWindowMs: parseInt(process.env.RATE_WRITE_WINDOW_MS, 10) || 60 * 1000,
+    writeMax:      parseInt(process.env.RATE_WRITE_MAX, 10)       || 30,
+    // Auth limiter
+    authWindowMs: parseInt(process.env.RATE_AUTH_WINDOW_MS, 10) || 15 * 60 * 1000,
+    authMax:      parseInt(process.env.RATE_AUTH_MAX, 10)        || 10,
+  },
+
   // Database config placeholder — swap in real values when adding a DB adapter
   db: {
     type: process.env.DB_TYPE || 'memory',

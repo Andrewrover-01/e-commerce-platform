@@ -78,6 +78,33 @@ class AuthService {
     return { user: toPublic(user), token }
   }
 
+  /**
+   * Logout — invalidate the current JWT by blacklisting it.
+   * @param {string} token  The raw Bearer token from the request.
+   */
+  async logout(token) {
+    if (!token) return
+
+    // Decode without verifying (it might be expired but we still want to blacklist it)
+    let ttlMs = 0
+    try {
+      const payload = jwt.decode(token)
+      if (payload && payload.exp) {
+        ttlMs = payload.exp * 1000 - Date.now()
+      }
+    } catch (_) {
+      // If decode fails, blacklist indefinitely (until server restart)
+    }
+
+    const { addToBlacklist } = require('../utils/token-blacklist')
+    // Only blacklist if the token hasn't already expired (no point otherwise)
+    if (ttlMs > 0) {
+      addToBlacklist(token, ttlMs)
+    } else {
+      addToBlacklist(token)
+    }
+  }
+
   /** @private */
   _signToken(user, expiresIn) {
     return jwt.sign(

@@ -29,6 +29,15 @@ class AuthController {
       next(err)
     }
   }
+
+  async logout(req, res, next) {
+    try {
+      await authService.logout(req.token)
+      res.json({ code: 200, message: '已退出登录' })
+    } catch (err) {
+      next(err)
+    }
+  }
 }
 
 module.exports = new AuthController()

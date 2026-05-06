@@ -5,6 +5,7 @@ const { body } = require('express-validator')
 const authController = require('../controllers/auth.controller')
 const validate = require('../middlewares/validate.middleware')
 const { authRateLimiter } = require('../middlewares/ratelimit.middleware')
+const authMiddleware = require('../middlewares/auth.middleware')
 
 const router = Router()
 
@@ -30,5 +31,8 @@ router.post(
   ],
   authController.login.bind(authController)
 )
+
+// Logout — requires a valid (non-blacklisted) JWT
+router.post('/logout', authMiddleware, authController.logout.bind(authController))
 
 module.exports = router
