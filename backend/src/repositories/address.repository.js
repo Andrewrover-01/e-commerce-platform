@@ -25,8 +25,8 @@ class AddressRepository extends BaseRepository {
   async setDefault(userId, addressId) {
     const addresses = this._store.filter(a => a.userId === userId)
     for (const addr of addresses) {
-      addr.isDefault = addr.id === addressId
-      addr.updatedAt = new Date()
+      // Use the inherited update() so updatedAt is managed consistently
+      await this.update(addr.id, { isDefault: addr.id === addressId })
     }
     return this._store.find(a => a.id === addressId) || null
   }

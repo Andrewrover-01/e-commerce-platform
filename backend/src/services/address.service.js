@@ -15,14 +15,14 @@ class AddressService {
   async add(userId, data) {
     const { name, phone, province, city, district, street, postcode, isDefault } = data
 
-    // If marking new address as default, clear current default first
-    if (isDefault) {
-      await this._clearDefault(userId)
-    }
-
     // First address for user is automatically the default
     const existing = await addressRepo.findByUser(userId)
     const makeDefault = isDefault || existing.length === 0
+
+    // Only clear current default when we need to set a new one
+    if (makeDefault) {
+      await this._clearDefault(userId)
+    }
 
     return addressRepo.create({ userId, name, phone, province, city, district, street, postcode, isDefault: makeDefault })
   }

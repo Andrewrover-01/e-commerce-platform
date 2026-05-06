@@ -96,7 +96,9 @@ class CouponService {
 
     const { coupon, discount } = await this.validateCoupon(couponCode, orderAmount)
 
-    // Increment global usedQuantity on the coupon
+    // Increment global usedQuantity on the coupon.
+    // NOTE: In production use an atomic increment (e.g. UPDATE … SET used_quantity = used_quantity + 1
+    // WHERE used_quantity < total_quantity) to prevent over-redemption under concurrent requests.
     await couponRepo.update(coupon.id, { usedQuantity: coupon.usedQuantity + 1 })
 
     return { userCoupon, couponId: coupon.id, discount }

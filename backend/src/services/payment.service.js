@@ -82,6 +82,7 @@ class PaymentService {
     }
 
     // Payment failed — restore stock (cancelled by gateway)
+    // NOTE: In production wrap this in a transaction with an atomic increment.
     if (status === 'failed') {
       for (const item of order.items) {
         const product = await productRepo.findById(item.productId)

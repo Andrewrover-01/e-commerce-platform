@@ -1,5 +1,6 @@
 'use strict'
 
+const { v4: uuidv4 } = require('uuid')
 const orderRepo = require('../repositories/order.repository')
 const productRepo = require('../repositories/product.repository')
 const couponService = require('./coupon.service')
@@ -12,6 +13,9 @@ class OrderService {
     if (!items || items.length === 0) throw new Error('订单商品不能为空')
 
     // ── Phase 1: validate stock and compute line totals ──────────────────
+    // NOTE: In production with a real DB, wrap from here to Phase 5 in a
+    // database transaction and use SELECT ... FOR UPDATE to lock rows and
+    // prevent overselling under concurrent requests.
     let totalAmount = 0
     const enrichedItems = []
     for (const item of items) {
@@ -43,7 +47,8 @@ class OrderService {
 
     const payAmount = Math.max(0, parseFloat((totalAmount - discountAmount).toFixed(2)))
 
-    const orderNo = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`
+    // UUID-based order number ensures global uniqueness without relying on timestamps
+    const orderNo = `ORD${uuidv4().replace(/-/g, '').slice(0, 16).toUpperCase()}`
 
     // ── Phase 3: persist order ───────────────────────────────────────────
     const order = await orderRepo.create({
@@ -60,6 +65,8 @@ class OrderService {
     })
 
     // ── Phase 4: deduct stock ────────────────────────────────────────────
+    // NOTE: In production use an atomic decrement (e.g. UPDATE … SET stock = stock - n WHERE stock >= n)
+    // to prevent overselling under concurrent requests.
     for (const item of enrichedItems) {
       const product = await productRepo.findById(item.productId)
       if (product) {
@@ -100,6 +107,7 @@ class OrderService {
     if (order.status !== ORDER_STATUS.PENDING_PAYMENT) throw new Error('只能取消待支付的订单')
 
     // Restore stock on cancel
+    // NOTE: In production use an atomic increment inside a transaction.
     for (const item of order.items) {
       const product = await productRepo.findById(item.productId)
       if (product) {
@@ -115,3 +123,4 @@ class OrderService {
 }
 
 module.exports = new OrderService()
+
