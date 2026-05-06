@@ -97,12 +97,7 @@ class AuthService {
     }
 
     const { addToBlacklist } = require('../utils/token-blacklist')
-    // Only blacklist if the token hasn't already expired (no point otherwise)
-    if (ttlMs > 0) {
-      addToBlacklist(token, ttlMs)
-    } else {
-      addToBlacklist(token)
-    }
+    addToBlacklist(token, ttlMs > 0 ? ttlMs : undefined)
   }
 
   /** @private */

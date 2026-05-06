@@ -52,8 +52,8 @@ function errorMiddleware(err, req, res, next) {
     console.error('[ERROR]', req.method, req.url, status, err.name)
   }
 
-  res.status(500).json({
-    code: 500,
+  res.status(status).json({
+    code: status,
     message: config.nodeEnv !== 'production' ? err.message : '服务器内部错误',
     ...(config.nodeEnv !== 'production' && { stack: err.stack }),
   })
