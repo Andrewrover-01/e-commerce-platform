@@ -12,7 +12,8 @@ function errorMiddleware(err, req, res, next) {
   const message = err.message || '服务器内部错误'
 
   if (config.nodeEnv !== 'production') {
-    console.error(`[ERROR] ${req.method} ${req.url}:`, err)
+    // Use separate arguments to avoid passing user-controlled strings as a format pattern
+    console.error('[ERROR]', req.method, req.url, err)
   }
 
   res.status(status).json({
