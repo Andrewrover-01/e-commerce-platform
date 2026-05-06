@@ -97,7 +97,7 @@ class AuthService {
     }
 
     const { addToBlacklist } = require('../utils/token-blacklist')
-    addToBlacklist(token, ttlMs > 0 ? ttlMs : undefined)
+    addToBlacklist(token, ttlMs)
   }
 
   /** @private */
