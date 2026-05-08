@@ -95,7 +95,6 @@ class PaymentService {
     // Locate order by orderNo
     const order = await orderRepo.findByOrderNo(orderNo)
     if (!order) throw AppError.notFound('订单不存在')
-    if (order.orderNo !== orderNo) throw AppError.badRequest('订单号不匹配')
 
     // Idempotency: if already handled, return current state
     if (order.status === ORDER_STATUS.PAID) return order

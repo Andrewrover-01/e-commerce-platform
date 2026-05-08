@@ -126,6 +126,7 @@ class PromotionService {
 
     // Recompute order total after flash sale prices applied
     let orderTotal = enrichedItems.reduce((sum, i) => sum + i.price * i.quantity, 0)
+    const orderTotalBeforeDiscount = orderTotal
 
     // ── 2. Discount — apply discountRate to eligible line items ─────────────
     for (const promo of activePromotions) {
@@ -136,6 +137,7 @@ class PromotionService {
         if (item.isFlashSale) continue  // Flash sale items exempt from further discounts
         if (!this._itemInScope(item, promo)) continue
 
+        // discountRate is the pay rate (e.g. 0.8 = 8折), so discount = total * (1 - rate)
         const lineDiscount = parseFloat(
           (item.price * item.quantity * (1 - promo.discountRate)).toFixed(2)
         )
@@ -149,10 +151,10 @@ class PromotionService {
       }
     }
 
-    // ── 3. Full reduction — check order total (post-discount) vs threshold ───
+    // ── 3. Full reduction — check order total before discounts vs threshold ─
     for (const promo of activePromotions) {
       if (promo.type !== PROMOTION_TYPE.FULL_REDUCTION) continue
-      if (orderTotal < promo.threshold) continue
+      if (orderTotalBeforeDiscount < promo.threshold) continue
 
       appliedPromotions.push({
         id: promo.id,
@@ -252,7 +254,7 @@ class PromotionService {
       }
     } else if (type === PROMOTION_TYPE.DISCOUNT) {
       if (data.discountRate == null || data.discountRate <= 0 || data.discountRate > 1) {
-        throw AppError.badRequest('折扣率必须在 0~1 之间')
+        throw AppError.badRequest('折扣率必须在 0~1 之间（0 不含，1 可用）')
       }
     } else if (type === PROMOTION_TYPE.FLASH_SALE) {
       if (!data.productId || data.flashPrice == null || data.flashStock == null) {

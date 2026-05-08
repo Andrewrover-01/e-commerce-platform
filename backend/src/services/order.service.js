@@ -67,7 +67,7 @@ class OrderService {
     await promotionService.lockFlashSaleStock(promoItems)
 
     // UUID-based order number ensures global uniqueness without relying on timestamps
-    const orderNo = `ORD${uuidv4().replace(/-/g, '').slice(0, 16).toUpperCase()}`
+    const orderNo = `ORD${uuidv4().replace(/-/g, '').toUpperCase()}`
 
     // ── Phase 5: persist order ───────────────────────────────────────────
     const order = await orderRepo.create({
@@ -134,4 +134,3 @@ class OrderService {
 }
 
 module.exports = new OrderService()
-

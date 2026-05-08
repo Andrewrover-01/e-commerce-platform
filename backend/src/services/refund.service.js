@@ -41,9 +41,14 @@ class RefundService {
       throw AppError.conflict('只有已完成的订单可以申请退款')
     }
 
-    const refundAmount = amount !== undefined
-      ? Math.min(Number(amount), order.payAmount)
-      : order.payAmount
+    let refundAmount = order.payAmount
+    if (amount !== undefined) {
+      const requested = Number(amount)
+      if (Number.isNaN(requested) || requested < 0) {
+        throw AppError.badRequest('退款金额不合法')
+      }
+      refundAmount = Math.min(requested, order.payAmount)
+    }
 
     const updated = await orderRepo.update(orderId, {
       status: ORDER_STATUS.REFUND_REQUESTED,
