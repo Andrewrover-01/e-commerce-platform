@@ -95,7 +95,7 @@ class RefundService {
 
   /**
    * Admin rejects the refund request.
-   * Order returns to DELIVERED status.
+   * Order is marked as REFUND_REJECTED so the user can see the outcome clearly.
    */
   async rejectRefund(orderId, rejectReason = '') {
     const order = await orderRepo.findById(orderId)

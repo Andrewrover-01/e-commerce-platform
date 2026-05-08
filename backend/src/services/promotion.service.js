@@ -219,6 +219,22 @@ class PromotionService {
     }
   }
 
+  /**
+   * Restore flash-sale stock after an already-committed order is cancelled by admin.
+   * Reverses a prior commitFlashSaleStock: adds back to flashStock.
+   * @param {Array} enrichedItems
+   */
+  async restoreFlashSaleStock(enrichedItems) {
+    for (const item of enrichedItems) {
+      if (!item.isFlashSale || !item.flashSaleId) continue
+      const promo = await promotionRepo.findById(item.flashSaleId)
+      if (!promo) continue
+      await promotionRepo.update(promo.id, {
+        flashStock: promo.flashStock + item.quantity,
+      })
+    }
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
   _itemInScope(item, promo) {
