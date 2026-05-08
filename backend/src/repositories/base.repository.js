@@ -10,11 +10,23 @@
  */
 
 const { v4: uuidv4 } = require('uuid')
+const dbStore = require('../persistence/db-store')
+
+function toCollectionName(modelFactory) {
+  if (!modelFactory || !modelFactory.name) return 'records'
+  const raw = modelFactory.name.replace(/^create/i, '')
+  if (!raw) return 'records'
+  return raw
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/__/g, '_')
+    .toLowerCase()
+}
 
 class BaseRepository {
-  constructor(modelFactory) {
+  constructor(modelFactory, options = {}) {
     this._store = []          // In-memory store (replace with DB pool)
     this._modelFactory = modelFactory  // Factory function from model file
+    this._collection = options.collection || toCollectionName(modelFactory)
   }
 
   /**
@@ -22,6 +34,9 @@ class BaseRepository {
    * @returns {Promise<Object[]>}
    */
   async findAll() {
+    if (dbStore.isEnabled()) {
+      return await dbStore.findAll(this._collection)
+    }
     return [...this._store]
   }
 
@@ -31,6 +46,9 @@ class BaseRepository {
    * @returns {Promise<Object|null>}
    */
   async findById(id) {
+    if (dbStore.isEnabled()) {
+      return await dbStore.findById(this._collection, id)
+    }
     return this._store.find(item => item.id === id) || null
   }
 
@@ -40,6 +58,10 @@ class BaseRepository {
    * @returns {Promise<Object[]>}
    */
   async findWhere(predicate) {
+    if (dbStore.isEnabled()) {
+      const list = await dbStore.findAll(this._collection)
+      return list.filter(predicate)
+    }
     return this._store.filter(predicate)
   }
 
@@ -49,6 +71,10 @@ class BaseRepository {
    * @returns {Promise<Object|null>}
    */
   async findOneWhere(predicate) {
+    if (dbStore.isEnabled()) {
+      const list = await dbStore.findAll(this._collection)
+      return list.find(predicate) || null
+    }
     return this._store.find(predicate) || null
   }
 
@@ -64,6 +90,10 @@ class BaseRepository {
       createdAt: new Date(),
       updatedAt: new Date(),
     })
+    if (dbStore.isEnabled()) {
+      await dbStore.insert(this._collection, record)
+      return { ...record }
+    }
     this._store.push(record)
     return { ...record }
   }
@@ -75,6 +105,19 @@ class BaseRepository {
    * @returns {Promise<Object|null>}
    */
   async update(id, updates) {
+    if (dbStore.isEnabled()) {
+      const current = await dbStore.findById(this._collection, id)
+      if (!current) return null
+      const updated = {
+        ...current,
+        ...updates,
+        id,
+        updatedAt: new Date(),
+      }
+      const ok = await dbStore.update(this._collection, id, updated)
+      return ok ? { ...updated } : null
+    }
+
     const index = this._store.findIndex(item => item.id === id)
     if (index === -1) return null
     this._store[index] = {
@@ -92,6 +135,9 @@ class BaseRepository {
    * @returns {Promise<boolean>}
    */
   async delete(id) {
+    if (dbStore.isEnabled()) {
+      return dbStore.remove(this._collection, id)
+    }
     const index = this._store.findIndex(item => item.id === id)
     if (index === -1) return false
     this._store.splice(index, 1)
@@ -104,6 +150,11 @@ class BaseRepository {
    * @returns {Promise<number>}
    */
   async count(predicate) {
+    if (dbStore.isEnabled()) {
+      const list = await dbStore.findAll(this._collection)
+      if (predicate) return list.filter(predicate).length
+      return list.length
+    }
     if (predicate) return this._store.filter(predicate).length
     return this._store.length
   }

@@ -36,6 +36,25 @@ const config = {
     name: process.env.DB_NAME || 'ecommerce',
     user: process.env.DB_USER || '',
     password: process.env.DB_PASSWORD || '',
+    table: process.env.DB_TABLE || 'app_records',
+    ssl: process.env.DB_SSL === 'true',
+  },
+
+  redis: {
+    enabled: process.env.REDIS_ENABLED === 'true' || Boolean(process.env.REDIS_URL),
+    url: process.env.REDIS_URL || '',
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    password: process.env.REDIS_PASSWORD || '',
+    db: parseInt(process.env.REDIS_DB, 10) || 0,
+    ttlSeconds: parseInt(process.env.REDIS_TTL_SECONDS, 10) || 300,
+  },
+
+  queue: {
+    enabled: process.env.QUEUE_ENABLED === 'true' || false,
+    orderQueueKey: process.env.QUEUE_ORDER_KEY || 'queue:orders',
+    logQueueKey: process.env.QUEUE_LOG_KEY || 'queue:logs',
+    pollIntervalMs: parseInt(process.env.QUEUE_POLL_MS, 10) || 1000,
   },
 }
 
