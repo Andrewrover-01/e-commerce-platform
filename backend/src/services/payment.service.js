@@ -72,20 +72,21 @@ class PaymentService {
     if (method) {
       verifyResult = await paymentGateway.verify(method, payload)
     } else {
-      // Legacy: decode token to extract orderId
-      let orderId
+      // Legacy token formats (base64-encoded):
+      //   v2: "<method>:<orderNo>:<ts>"  (current)
+      //   v1: "<orderId>:<ts>"           (older)
+      let decoded
       try {
-        const decoded = Buffer.from(paymentToken, 'base64').toString('utf8')
-        orderId = decoded.split(':')[1]   // format: "<method>:<orderId>:<ts>"
+        decoded = Buffer.from(paymentToken, 'base64').toString('utf8')
       } catch (_) {
-        // Fallback: old token format "<orderId>:<ts>"
-        try {
-          const decoded = Buffer.from(paymentToken, 'base64').toString('utf8')
-          orderId = decoded.split(':')[0]
-        } catch (_2) {
-          throw AppError.badRequest('无效的支付凭证')
-        }
+        throw AppError.badRequest('无效的支付凭证')
       }
+
+      const parts = decoded.split(':')
+      if (![2, 3].includes(parts.length)) {
+        throw AppError.badRequest('无效的支付凭证')
+      }
+
       verifyResult = { valid: true, outTradeNo: orderNo, status: status === 'success' ? 'success' : 'failed' }
     }
 
@@ -138,4 +139,3 @@ class PaymentService {
 }
 
 module.exports = new PaymentService()
-

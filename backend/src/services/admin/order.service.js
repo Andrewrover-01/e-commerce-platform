@@ -100,7 +100,7 @@ class AdminOrderService {
       for (const item of order.items || []) {
         await stockLockService.restoreStock(item.productId, item.quantity)
       }
-      await promotionService.commitFlashSaleStock(order.items || [])  // noop if no flash items
+      await promotionService.restoreFlashSaleStock(order.items || [])
     }
 
     const updated = await orderRepo.update(id, {

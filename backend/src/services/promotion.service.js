@@ -251,8 +251,8 @@ class PromotionService {
         throw AppError.badRequest('满减活动必须填写门槛金额和减免金额')
       }
     } else if (type === PROMOTION_TYPE.DISCOUNT) {
-      if (data.discountRate == null || data.discountRate <= 0 || data.discountRate >= 1) {
-        throw AppError.badRequest('折扣率必须在 0~1 之间（不含）')
+      if (data.discountRate == null || data.discountRate <= 0 || data.discountRate > 1) {
+        throw AppError.badRequest('折扣率必须在 0~1 之间')
       }
     } else if (type === PROMOTION_TYPE.FLASH_SALE) {
       if (!data.productId || data.flashPrice == null || data.flashStock == null) {
