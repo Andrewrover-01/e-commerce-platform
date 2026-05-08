@@ -24,6 +24,27 @@ class AdminOrderController {
     } catch (err) { next(err) }
   }
 
+  async ship(req, res, next) {
+    try {
+      const order = await adminOrderService.ship(req.params.id, req.body.trackingNo)
+      res.json({ code: 200, message: '发货成功', data: order })
+    } catch (err) { next(err) }
+  }
+
+  async complete(req, res, next) {
+    try {
+      const order = await adminOrderService.complete(req.params.id)
+      res.json({ code: 200, message: '订单已完成', data: order })
+    } catch (err) { next(err) }
+  }
+
+  async cancel(req, res, next) {
+    try {
+      const order = await adminOrderService.cancel(req.params.id, req.body.reason)
+      res.json({ code: 200, message: '订单已取消', data: order })
+    } catch (err) { next(err) }
+  }
+
   async getRefundList(req, res, next) {
     try {
       const result = await adminOrderService.getRefundList(req.query)

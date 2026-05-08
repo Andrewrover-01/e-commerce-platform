@@ -38,6 +38,13 @@ class AdminProductController {
     } catch (err) { next(err) }
   }
 
+  async batchUpdateStock(req, res, next) {
+    try {
+      const result = await adminProductService.batchUpdateStock(req.body.items)
+      res.json({ code: 200, message: '批量库存更新完成', data: result })
+    } catch (err) { next(err) }
+  }
+
   // Categories
   async getCategoryList(req, res, next) {
     try {

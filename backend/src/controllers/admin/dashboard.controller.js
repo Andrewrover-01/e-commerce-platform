@@ -20,6 +20,33 @@ class AdminDashboardController {
       next(err)
     }
   }
+
+  async getSalesTrend(req, res, next) {
+    try {
+      const data = await dashboardService.getSalesTrend(req.query)
+      res.json({ code: 200, data })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async getProductStats(req, res, next) {
+    try {
+      const data = await dashboardService.getProductStats(req.query)
+      res.json({ code: 200, data })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async getUserStats(req, res, next) {
+    try {
+      const data = await dashboardService.getUserStats(req.query)
+      res.json({ code: 200, data })
+    } catch (err) {
+      next(err)
+    }
+  }
 }
 
 module.exports = new AdminDashboardController()
