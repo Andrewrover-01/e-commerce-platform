@@ -13,7 +13,12 @@
 class AlipayDriver {
   async createOrder({ outTradeNo, totalAmount, subject }) {
     // In production: call AliPay openapi to get a pay URL / QR code.
-    const payUrl = `https://openapi.alipay.com/gateway.do?method=alipay.trade.page.pay&out_trade_no=${encodeURIComponent(outTradeNo)}&total_amount=${encodeURIComponent(totalAmount)}&subject=${encodeURIComponent(subject)}`
+    const url = new URL('https://openapi.alipay.com/gateway.do')
+    url.searchParams.set('method', 'alipay.trade.page.pay')
+    url.searchParams.set('out_trade_no', outTradeNo)
+    url.searchParams.set('total_amount', totalAmount)
+    url.searchParams.set('subject', subject)
+    const payUrl = url.toString()
     return { payUrl, paymentToken: Buffer.from(`alipay:${outTradeNo}:${Date.now()}`).toString('base64') }
   }
 

@@ -16,7 +16,7 @@
  */
 
 const orderRepo = require('../repositories/order.repository')
-const productRepo = require('../repositories/product.repository')
+const stockLockService = require('./stock-lock.service')
 const { ORDER_STATUS } = require('../models/order.model')
 const AppError = require('../utils/app-error')
 const paymentGateway = require('./integrations/payment-gateway.service')
@@ -136,12 +136,7 @@ class RefundService {
 
     // Restore physical stock for all order items
     for (const item of order.items || []) {
-      const product = await productRepo.findById(item.productId)
-      if (!product) continue
-      await productRepo.update(product.id, {
-        stock: product.stock + item.quantity,
-        sales: Math.max(0, (product.sales || 0) - item.quantity),
-      })
+      await stockLockService.restoreStock(item.productId, item.quantity)
     }
 
     const updated = await orderRepo.update(orderId, {

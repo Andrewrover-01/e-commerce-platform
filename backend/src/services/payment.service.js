@@ -84,7 +84,20 @@ class PaymentService {
       }
 
       const parts = decoded.split(':')
-      if (![2, 3].includes(parts.length)) {
+      if (parts.length === 3) {
+        const [tokenMethod, tokenOrderNo, tokenTs] = parts
+        if (!tokenMethod || !tokenOrderNo || !tokenTs) {
+          throw AppError.badRequest('无效的支付凭证')
+        }
+        if (!paymentGateway.getSupportedMethods().includes(tokenMethod)) {
+          throw AppError.badRequest('无效的支付凭证')
+        }
+      } else if (parts.length === 2) {
+        const [tokenOrderId, tokenTs] = parts
+        if (!tokenOrderId || !tokenTs) {
+          throw AppError.badRequest('无效的支付凭证')
+        }
+      } else {
         throw AppError.badRequest('无效的支付凭证')
       }
 

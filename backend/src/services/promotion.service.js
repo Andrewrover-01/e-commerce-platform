@@ -137,10 +137,10 @@ class PromotionService {
         if (item.isFlashSale) continue  // Flash sale items exempt from further discounts
         if (!this._itemInScope(item, promo)) continue
 
-        // discountRate is the pay rate (e.g. 0.8 = 8折), so discount = total * (1 - rate)
-        const lineDiscount = parseFloat(
-          (item.price * item.quantity * (1 - promo.discountRate)).toFixed(2)
-        )
+        // discountRate is the pay rate (e.g. 0.8 = 8折)
+        const lineTotal = item.price * item.quantity
+        const discountedTotal = parseFloat((lineTotal * promo.discountRate).toFixed(2))
+        const lineDiscount = parseFloat((lineTotal - discountedTotal).toFixed(2))
         item.discountRate = promo.discountRate
         promoDiscount += lineDiscount
       }
