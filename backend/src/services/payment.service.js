@@ -69,6 +69,7 @@ class PaymentService {
 
     // Verify via gateway (uses method hint or falls back to token decode)
     let verifyResult
+    let legacyOrderId = null
     if (method) {
       verifyResult = await paymentGateway.verify(method, payload)
     } else {
@@ -97,6 +98,7 @@ class PaymentService {
         if (!tokenOrderId || !tokenTs) {
           throw AppError.badRequest('无效的支付凭证')
         }
+        legacyOrderId = tokenOrderId
       } else {
         throw AppError.badRequest('无效的支付凭证')
       }
@@ -109,6 +111,9 @@ class PaymentService {
     // Locate order by orderNo
     const order = await orderRepo.findByOrderNo(orderNo)
     if (!order) throw AppError.notFound('订单不存在')
+    if (legacyOrderId && legacyOrderId !== order.id) {
+      throw AppError.badRequest('支付凭证与订单不匹配')
+    }
 
     // Idempotency: if already handled, return current state
     if (order.status === ORDER_STATUS.PAID) return order

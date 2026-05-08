@@ -30,7 +30,10 @@ class StockLockService {
   async _withLock(productId, fn) {
     const previous = productLocks.get(productId) || Promise.resolve()
     const next = previous.catch(() => {}).then(fn)
-    productLocks.set(productId, next.catch(() => {}))
+    const safeNext = next.catch(err => {
+      console.error(`[StockLock] 更新商品 ${productId} 库存失败:`, err.message)
+    })
+    productLocks.set(productId, safeNext)
     return next
   }
   /**
