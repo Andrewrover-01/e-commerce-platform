@@ -75,6 +75,7 @@ class PaymentService {
       // Legacy token formats (base64-encoded):
       //   v2: "<method>:<orderNo>:<ts>"  (current)
       //   v1: "<orderId>:<ts>"           (older)
+      // We validate the token shape only; the gateway payload's orderNo remains authoritative.
       let decoded
       try {
         decoded = Buffer.from(paymentToken, 'base64').toString('utf8')
