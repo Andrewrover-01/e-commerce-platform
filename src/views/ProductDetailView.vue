@@ -57,6 +57,14 @@
                     <el-tag v-if="discountRate" type="danger">{{ discountRate }}折</el-tag>
                   </el-space>
                   <div v-if="savedAmount > 0" class="price-save">立省 ¥{{ formatPrice(savedAmount) }}</div>
+                  
+                  <div v-if="product.promotion?.tags?.length" class="promotion-section">
+                    <PromotionTag :tags="product.promotion.tags" />
+                  </div>
+                  
+                  <div v-if="product.promotion?.endTime" class="countdown-section">
+                    <CountdownTimer :end-time="product.promotion.endTime" />
+                  </div>
                 </el-card>
 
                 <el-descriptions :column="1" border>
@@ -110,6 +118,8 @@ import { ref, computed, onMounted, watch, toRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { getProductById } from '@/api/mock'
+import PromotionTag from '@/components/common/PromotionTag.vue'
+import CountdownTimer from '@/components/common/CountdownTimer.vue'
 
 const props = defineProps({
   id: {
@@ -251,6 +261,18 @@ watch(id, loadProduct)
 .price-save {
   margin-top: var(--spacing-2);
   color: var(--color-primary);
+}
+
+.promotion-section {
+  margin-top: var(--spacing-3);
+  padding-top: var(--spacing-3);
+  border-top: 1px dashed var(--color-border-light);
+}
+
+.countdown-section {
+  margin-top: var(--spacing-3);
+  padding-top: var(--spacing-3);
+  border-top: 1px dashed var(--color-border-light);
 }
 
 .reviews-list {

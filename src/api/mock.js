@@ -62,6 +62,26 @@ export async function getProductById(id) {
     throw new Error('商品不存在')
   }
 
+  const promotionTags = []
+  const now = new Date()
+  const endTime = new Date(now.getTime() + Math.random() * 3600000 * 24 * 3).toISOString()
+
+  if (product.isHot) {
+    promotionTags.push({ type: 'flash', text: '限时特惠' })
+  }
+  if (product.isNew) {
+    promotionTags.push({ type: 'new', text: '新品上市' })
+  }
+  if (product.price < product.originalPrice * 0.9) {
+    promotionTags.push({ type: 'discount', text: '超值折扣' })
+  }
+  if (product.sales > 10000) {
+    promotionTags.push({ type: 'gift', text: '买赠好礼' })
+  }
+  if (Math.random() > 0.5) {
+    promotionTags.push({ type: 'full_reduction', text: '满减优惠' })
+  }
+
   return {
     ...product,
     images: [
@@ -79,7 +99,11 @@ export async function getProductById(id) {
       { id: 1, user: '用户***001', rating: 5, content: '非常好用，物超所值，强烈推荐！', date: '2024-01-15', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user1' },
       { id: 2, user: '买家***abc', rating: 4, content: '包装很好，发货很快，质量不错', date: '2024-01-10', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user2' },
       { id: 3, user: '匿名用户', rating: 5, content: '京东自营，放心购买，下次还会再来', date: '2024-01-08', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user3' }
-    ]
+    ],
+    promotion: {
+      tags: promotionTags,
+      endTime: endTime
+    }
   }
 }
 
