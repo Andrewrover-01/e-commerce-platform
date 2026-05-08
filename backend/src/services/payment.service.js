@@ -1,27 +1,33 @@
 'use strict'
 
 const orderRepo = require('../repositories/order.repository')
-const productRepo = require('../repositories/product.repository')
 const { ORDER_STATUS } = require('../models/order.model')
 const AppError = require('../utils/app-error')
+const paymentGateway = require('./integrations/payment-gateway.service')
+const stockLockService = require('./stock-lock.service')
+const promotionService = require('./promotion.service')
+const smsService = require('./integrations/sms.service')
+const userRepo = require('../repositories/user.repository')
 
-// Supported payment methods
-const PAYMENT_METHODS = ['alipay', 'wechat', 'creditcard']
+async function _getUserPhone(userId) {
+  const user = await userRepo.findById(userId)
+  return user ? user.phone : null
+}
 
 class PaymentService {
   /**
    * Initiate payment for a pending order.
-   * In a real system this would call a payment gateway and return a pay URL / QR code.
-   * Here we return a simulated payment token immediately.
+   * Delegates to the payment gateway adapter (Alipay / WeChat / CreditCard).
    *
    * @param {string} userId
    * @param {string} orderId
    * @param {string} paymentMethod
-   * @returns {Promise<{ orderNo: string, payAmount: number, paymentToken: string }>}
+   * @returns {Promise<{ orderNo: string, payAmount: number, paymentToken: string, ... }>}
    */
   async initiate(userId, orderId, paymentMethod) {
-    if (!PAYMENT_METHODS.includes(paymentMethod)) {
-      throw AppError.badRequest(`不支持的支付方式，请选择: ${PAYMENT_METHODS.join(', ')}`)
+    const supported = paymentGateway.getSupportedMethods()
+    if (!supported.includes(paymentMethod)) {
+      throw AppError.badRequest(`不支持的支付方式，请选择: ${supported.join(', ')}`)
     }
 
     const order = await orderRepo.findById(orderId)
@@ -34,70 +40,102 @@ class PaymentService {
     // Update order with chosen payment method
     await orderRepo.update(orderId, { paymentMethod })
 
-    // Simulate a payment token (in production this comes from the gateway)
-    const paymentToken = Buffer.from(`${orderId}:${Date.now()}`).toString('base64')
+    // Create order at gateway and get payment credential
+    const gatewayResult = await paymentGateway.createOrder(paymentMethod, {
+      outTradeNo: order.orderNo,
+      totalAmount: order.payAmount,
+      subject: `订单 ${order.orderNo}`,
+    })
 
     return {
       orderNo: order.orderNo,
       payAmount: order.payAmount,
       paymentMethod,
-      paymentToken,
+      ...gatewayResult,
     }
   }
 
   /**
    * Handle payment gateway callback (notify).
-   * Verifies the token, marks the order as PAID.
-   * In production: verify signature from gateway, idempotent processing.
+   * Verifies the payload, commits stock, marks order PAID.
    *
-   * @param {{ orderNo: string, paymentToken: string, status: string }} payload
+   * @param {{ orderNo: string, paymentToken: string, status: string, method?: string }} payload
    * @returns {Promise<Object>} Updated order
    */
   async handleNotify(payload) {
-    const { orderNo, paymentToken, status } = payload
+    const { orderNo, paymentToken, status, method } = payload
 
     if (!orderNo || !paymentToken) throw AppError.badRequest('回调参数缺失')
 
-    // Decode and validate token (simplified)
-    let orderId
-    try {
-      const decoded = Buffer.from(paymentToken, 'base64').toString('utf8')
-      orderId = decoded.split(':')[0]
-    } catch (_) {
-      throw AppError.badRequest('无效的支付凭证')
+    // Verify via gateway (uses method hint or falls back to token decode)
+    let verifyResult
+    if (method) {
+      verifyResult = await paymentGateway.verify(method, payload)
+    } else {
+      // Legacy: decode token to extract orderId
+      let orderId
+      try {
+        const decoded = Buffer.from(paymentToken, 'base64').toString('utf8')
+        orderId = decoded.split(':')[1]   // format: "<method>:<orderId>:<ts>"
+      } catch (_) {
+        // Fallback: old token format "<orderId>:<ts>"
+        try {
+          const decoded = Buffer.from(paymentToken, 'base64').toString('utf8')
+          orderId = decoded.split(':')[0]
+        } catch (_2) {
+          throw AppError.badRequest('无效的支付凭证')
+        }
+      }
+      verifyResult = { valid: true, outTradeNo: orderNo, status: status === 'success' ? 'success' : 'failed' }
     }
 
-    const order = await orderRepo.findById(orderId)
+    if (!verifyResult.valid) throw AppError.badRequest('支付签名验证失败')
+
+    // Locate order by orderNo
+    const order = await orderRepo.findByOrderNo(orderNo)
     if (!order) throw AppError.notFound('订单不存在')
     if (order.orderNo !== orderNo) throw AppError.badRequest('订单号不匹配')
 
-    // If already paid, return idempotently
+    // Idempotency: if already handled, return current state
     if (order.status === ORDER_STATUS.PAID) return order
+    if (order.status === ORDER_STATUS.CANCELLED) return order
 
-    if (status === 'success') {
-      return orderRepo.update(orderId, {
+    if (verifyResult.status === 'success') {
+      // Commit stock: physical deduction + release lock + increment sales
+      for (const item of order.items || []) {
+        if (item.isFlashSale) continue
+        await stockLockService.commitStock(item.productId, item.quantity)
+      }
+      await promotionService.commitFlashSaleStock(order.items || [])
+
+      const updated = await orderRepo.update(order.id, {
         status: ORDER_STATUS.PAID,
         paidAt: new Date(),
       })
+
+      const phone = await _getUserPhone(order.userId)
+      await smsService.sendTemplate(phone, 'ORDER_PAID', {
+        orderNo: order.orderNo,
+        amount: order.payAmount,
+      })
+
+      return updated
     }
 
-    // Payment failed — restore stock (cancelled by gateway)
-    // NOTE: In production wrap this in a transaction with an atomic increment.
-    if (status === 'failed') {
-      for (const item of order.items) {
-        const product = await productRepo.findById(item.productId)
-        if (product) {
-          await productRepo.update(product.id, {
-            stock: product.stock + item.quantity,
-            sales: Math.max(0, product.sales - item.quantity),
-          })
-        }
+    // Payment failed — release stock locks
+    if (verifyResult.status === 'failed') {
+      for (const item of order.items || []) {
+        if (item.isFlashSale) continue
+        await stockLockService.releaseStock(item.productId, item.quantity)
       }
-      return orderRepo.update(orderId, { status: ORDER_STATUS.CANCELLED })
+      await promotionService.releaseFlashSaleStock(order.items || [])
+
+      return orderRepo.update(order.id, { status: ORDER_STATUS.CANCELLED })
     }
 
-    throw AppError.badRequest(`未知的支付状态: ${status}`)
+    throw AppError.badRequest(`未知的支付状态: ${verifyResult.status}`)
   }
 }
 
 module.exports = new PaymentService()
+

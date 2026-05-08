@@ -42,6 +42,7 @@ function createProduct(data) {
     categoryId: data.categoryId || '',
     brand: data.brand || '',
     stock: Number(data.stock) || 0,
+    lockedStock: Number(data.lockedStock) || 0,
     sales: Number(data.sales) || 0,
     rating: Number(data.rating) || 5,
     isHot: Boolean(data.isHot),

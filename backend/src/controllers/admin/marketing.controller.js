@@ -31,10 +31,40 @@ class AdminMarketingController {
     } catch (err) { next(err) }
   }
 
-  async getActivityList(req, res, next) {
+  // Promotions
+
+  async getPromotionList(req, res, next) {
     try {
-      const list = await adminMarketingService.getActivityList()
-      res.json({ code: 200, data: list })
+      const result = await adminMarketingService.getPromotionList(req.query)
+      res.json({ code: 200, data: result })
+    } catch (err) { next(err) }
+  }
+
+  async getPromotionById(req, res, next) {
+    try {
+      const promo = await adminMarketingService.getPromotionById(req.params.id)
+      res.json({ code: 200, data: promo })
+    } catch (err) { next(err) }
+  }
+
+  async createPromotion(req, res, next) {
+    try {
+      const promo = await adminMarketingService.createPromotion(req.body)
+      res.status(201).json({ code: 200, message: '创建成功', data: promo })
+    } catch (err) { next(err) }
+  }
+
+  async updatePromotion(req, res, next) {
+    try {
+      const promo = await adminMarketingService.updatePromotion(req.params.id, req.body)
+      res.json({ code: 200, message: '更新成功', data: promo })
+    } catch (err) { next(err) }
+  }
+
+  async deletePromotion(req, res, next) {
+    try {
+      await adminMarketingService.deletePromotion(req.params.id)
+      res.json({ code: 200, message: '删除成功' })
     } catch (err) { next(err) }
   }
 }

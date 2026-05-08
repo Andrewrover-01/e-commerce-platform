@@ -36,8 +36,10 @@ const ORDER_STATUS = {
   SHIPPED: 'shipped',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
+  REFUND_REQUESTED: 'refund_requested',
   REFUNDING: 'refunding',
   REFUNDED: 'refunded',
+  REFUND_REJECTED: 'refund_rejected',
 }
 
 function createOrder(data) {
@@ -56,6 +58,12 @@ function createOrder(data) {
     paidAt: data.paidAt || null,
     shippedAt: data.shippedAt || null,
     deliveredAt: data.deliveredAt || null,
+    trackingNo: data.trackingNo || null,
+    refundReason: data.refundReason || null,
+    refundAmount: data.refundAmount !== undefined ? Number(data.refundAmount) : null,
+    refundedAt: data.refundedAt || null,
+    cancelReason: data.cancelReason || null,
+    cancelledAt: data.cancelledAt || null,
     remark: data.remark || '',
     createdAt: data.createdAt || new Date(),
     updatedAt: data.updatedAt || new Date(),

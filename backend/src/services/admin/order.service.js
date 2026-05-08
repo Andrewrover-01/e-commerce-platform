@@ -1,9 +1,17 @@
 'use strict'
 
 const orderRepo = require('../../repositories/order.repository')
-const productRepo = require('../../repositories/product.repository')
+const stockLockService = require('../stock-lock.service')
+const promotionService = require('../promotion.service')
+const smsService = require('../integrations/sms.service')
+const userRepo = require('../../repositories/user.repository')
 const { ORDER_STATUS } = require('../../models/order.model')
 const AppError = require('../../utils/app-error')
+
+async function _getUserPhone(userId) {
+  const user = await userRepo.findById(userId)
+  return user ? user.phone : null
+}
 
 class AdminOrderService {
   async getList(params = {}) {
@@ -42,11 +50,19 @@ class AdminOrderService {
     if (!trackingNo || !String(trackingNo).trim()) {
       throw AppError.badRequest('请提供物流单号')
     }
-    return orderRepo.update(id, {
+    const updated = await orderRepo.update(id, {
       status: ORDER_STATUS.SHIPPED,
       trackingNo: String(trackingNo).trim(),
       shippedAt: new Date(),
     })
+
+    const phone = await _getUserPhone(order.userId)
+    await smsService.sendTemplate(phone, 'ORDER_SHIPPED', {
+      orderNo: order.orderNo,
+      trackingNo: String(trackingNo).trim(),
+    })
+
+    return updated
   }
 
   async complete(id) {
@@ -54,10 +70,15 @@ class AdminOrderService {
     if (order.status !== ORDER_STATUS.SHIPPED) {
       throw AppError.conflict('仅已发货订单可完成')
     }
-    return orderRepo.update(id, {
+    const updated = await orderRepo.update(id, {
       status: ORDER_STATUS.DELIVERED,
       deliveredAt: new Date(),
     })
+
+    const phone = await _getUserPhone(order.userId)
+    await smsService.sendTemplate(phone, 'ORDER_DELIVERED', { orderNo: order.orderNo })
+
+    return updated
   }
 
   async cancel(id, reason = '') {
@@ -67,20 +88,31 @@ class AdminOrderService {
       throw AppError.conflict('仅待支付或已支付订单可取消')
     }
 
-    for (const item of order.items || []) {
-      const product = await productRepo.findById(item.productId)
-      if (!product) continue
-      await productRepo.update(product.id, {
-        stock: product.stock + item.quantity,
-        sales: Math.max(0, product.sales - item.quantity),
-      })
+    if (order.status === ORDER_STATUS.PENDING_PAYMENT) {
+      // Order not yet paid: just release locks (no physical stock deducted)
+      for (const item of order.items || []) {
+        if (item.isFlashSale) continue
+        await stockLockService.releaseStock(item.productId, item.quantity)
+      }
+      await promotionService.releaseFlashSaleStock(order.items || [])
+    } else {
+      // PAID order: stock was already committed, restore it
+      for (const item of order.items || []) {
+        await stockLockService.restoreStock(item.productId, item.quantity)
+      }
+      await promotionService.commitFlashSaleStock(order.items || [])  // noop if no flash items
     }
 
-    return orderRepo.update(id, {
+    const updated = await orderRepo.update(id, {
       status: ORDER_STATUS.CANCELLED,
       cancelReason: reason || '',
       cancelledAt: new Date(),
     })
+
+    const phone = await _getUserPhone(order.userId)
+    await smsService.sendTemplate(phone, 'ORDER_CANCELLED', { orderNo: order.orderNo })
+
+    return updated
   }
 
   async getRefundList(params = {}) {

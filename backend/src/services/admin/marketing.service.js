@@ -1,6 +1,7 @@
 'use strict'
 
 const couponRepo = require('../../repositories/coupon.repository')
+const promotionService = require('../promotion.service')
 
 class AdminMarketingService {
   // ── Coupons ──────────────────────────────────────────────────────────
@@ -34,11 +35,26 @@ class AdminMarketingService {
     return true
   }
 
-  // ── Activities (placeholder — extend as needed) ──────────────────────
+  // ── Promotions (满减 / 折扣 / 秒杀) ──────────────────────────────────
 
-  async getActivityList() {
-    // TODO: implement when Activity model/repository is added
-    return []
+  async getPromotionList(params = {}) {
+    return promotionService.getList(params)
+  }
+
+  async getPromotionById(id) {
+    return promotionService.getById(id)
+  }
+
+  async createPromotion(data) {
+    return promotionService.create(data)
+  }
+
+  async updatePromotion(id, data) {
+    return promotionService.update(id, data)
+  }
+
+  async deletePromotion(id) {
+    return promotionService.delete(id)
   }
 }
 
