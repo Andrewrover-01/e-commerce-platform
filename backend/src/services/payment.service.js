@@ -8,6 +8,8 @@ const stockLockService = require('./stock-lock.service')
 const promotionService = require('./promotion.service')
 const smsService = require('./integrations/sms.service')
 const userRepo = require('../repositories/user.repository')
+const queueService = require('./queue.service')
+const logEventService = require('./log-event.service')
 
 async function _getUserPhone(userId) {
   const user = await userRepo.findById(userId)
@@ -138,6 +140,19 @@ class PaymentService {
         amount: order.payAmount,
       })
 
+      await queueService.publishOrderEvent('order_paid', {
+        orderId: order.id,
+        orderNo: order.orderNo,
+        userId: order.userId,
+        status: ORDER_STATUS.PAID,
+      })
+      await logEventService.record({
+        level: 'info',
+        event: 'order_paid',
+        message: `订单 ${order.orderNo} 支付成功`,
+        payload: { orderId: order.id, userId: order.userId, amount: order.payAmount },
+      })
+
       return updated
     }
 
@@ -149,7 +164,21 @@ class PaymentService {
       }
       await promotionService.releaseFlashSaleStock(order.items || [])
 
-      return orderRepo.update(order.id, { status: ORDER_STATUS.CANCELLED })
+      const cancelled = await orderRepo.update(order.id, { status: ORDER_STATUS.CANCELLED })
+      await queueService.publishOrderEvent('order_payment_failed', {
+        orderId: order.id,
+        orderNo: order.orderNo,
+        userId: order.userId,
+        status: ORDER_STATUS.CANCELLED,
+      })
+      await logEventService.record({
+        level: 'warn',
+        event: 'order_payment_failed',
+        message: `订单 ${order.orderNo} 支付失败并取消`,
+        payload: { orderId: order.id, userId: order.userId },
+      })
+
+      return cancelled
     }
 
     throw AppError.badRequest(`未知的支付状态: ${verifyResult.status}`)

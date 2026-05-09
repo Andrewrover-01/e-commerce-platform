@@ -12,6 +12,14 @@ const config = require('./index')
 let _connection = null
 let _dbType = 'memory'
 
+function _tableName() {
+  const tableName = config.db.table || 'app_records'
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+    throw new Error('[DB] Invalid DB_TABLE value')
+  }
+  return tableName
+}
+
 function normalizeDbType(type) {
   if (!type) return 'memory'
   const lower = String(type).toLowerCase()
@@ -24,7 +32,7 @@ function normalizeDbType(type) {
 async function _ensureSchema() {
   if (!_connection || _dbType === 'memory') return
 
-  const tableName = config.db.table || 'app_records'
+  const tableName = _tableName()
 
   if (_dbType === 'mysql') {
     const createSql = `

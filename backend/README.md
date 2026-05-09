@@ -14,7 +14,8 @@ Node.js + Express RESTful API，为用户端和管理端提供统一数据接口
 | 参数校验 | express-validator |
 | 安全 | helmet, cors |
 | 日志 | morgan |
-| 数据库（默认）| 内存存储（可替换为 MySQL / MongoDB） |
+| 数据持久化 | 内存存储（可切换 MySQL / PostgreSQL JSON 记录表） |
+| 缓存/队列 | Redis（缓存 + 队列事件，支持内存回退） |
 
 ---
 
@@ -23,9 +24,10 @@ Node.js + Express RESTful API，为用户端和管理端提供统一数据接口
 ```
 backend/
 ├── src/
-│   ├── config/              # 配置（端口、JWT、数据库）
+│   ├── config/              # 配置（端口、JWT、数据库、Redis）
 │   │   ├── index.js
-│   │   └── database.js      # DB 连接占位，替换为真实适配器
+│   │   ├── database.js
+│   │   └── redis.js
 │   ├── models/              # 数据模型 / Schema 定义
 │   │   ├── user.model.js
 │   │   ├── product.model.js
@@ -48,7 +50,8 @@ backend/
 │   │   ├── review.repository.js
 │   │   ├── banner.repository.js
 │   │   ├── notice.repository.js
-│   │   └── article.repository.js
+│   │   ├── article.repository.js
+│   │   └── log.repository.js
 │   ├── services/            # 业务逻辑层
 │   │   ├── auth.service.js
 │   │   ├── user.service.js
@@ -57,6 +60,9 @@ backend/
 │   │   ├── order.service.js
 │   │   ├── cart.service.js
 │   │   ├── coupon.service.js
+│   │   ├── cache.service.js
+│   │   ├── queue.service.js
+│   │   ├── log-event.service.js
 │   │   └── admin/
 │   │       ├── dashboard.service.js
 │   │       ├── product.service.js
@@ -207,12 +213,13 @@ npm start
 
 ---
 
-## 接入真实数据库
+## 持久化 / 缓存 / 队列配置
 
-1. 在 `.env` 中设置 `DB_TYPE=mysql`（或 `mongodb`）及连接参数
-2. 在 `src/config/database.js` 中实现 `connect()` 函数
-3. 在对应的 `src/repositories/*.repository.js` 中替换内存数组操作为真实 SQL/ORM 查询
-4. 业务逻辑层（services）和控制层（controllers）**无需修改**
+1. 在 `.env` 中设置 `DB_TYPE=mysql` 或 `DB_TYPE=postgres`，并配置 `DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD`（或 `DB_TYPE=memory` 使用内存存储）
+2. 可选设置 `DB_TABLE`（默认 `app_records`），系统会在启动时自动创建 JSON 记录表
+3. 如需启用 Redis，设置 `REDIS_ENABLED=true`（或配置 `REDIS_URL`），缓存会自动接管商品查询缓存
+4. 如需启用队列，设置 `QUEUE_ENABLED=true`，订单事件与日志事件会发布到 `QUEUE_ORDER_KEY/QUEUE_LOG_KEY`
+5. 应用启动时会自动执行数据库连接、Redis 连接、队列启动钩子
 
 ---
 

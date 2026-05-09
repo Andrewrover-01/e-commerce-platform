@@ -21,6 +21,7 @@
 
 const productRepo = require('../repositories/product.repository')
 const AppError = require('../utils/app-error')
+const cacheService = require('./cache.service')
 
 // Simple in-process mutex map per productId to serialize stock mutations.
 // (Still replace with DB-level atomic updates in production.)
@@ -55,6 +56,7 @@ class StockLockService {
       await productRepo.update(productId, {
         lockedStock: (product.lockedStock || 0) + quantity,
       })
+      await cacheService.invalidateProduct(productId)
     })
   }
 
@@ -71,6 +73,7 @@ class StockLockService {
       await productRepo.update(productId, {
         lockedStock: Math.max(0, (product.lockedStock || 0) - quantity),
       })
+      await cacheService.invalidateProduct(productId)
     })
   }
 
@@ -90,6 +93,7 @@ class StockLockService {
         lockedStock: Math.max(0, (product.lockedStock || 0) - quantity),
         sales: (product.sales || 0) + quantity,
       })
+      await cacheService.invalidateProduct(productId)
     })
   }
 
@@ -108,6 +112,7 @@ class StockLockService {
         stock: product.stock + quantity,
         sales: Math.max(0, (product.sales || 0) - quantity),
       })
+      await cacheService.invalidateProduct(productId)
     })
   }
 }

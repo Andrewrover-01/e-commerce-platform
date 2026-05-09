@@ -3,6 +3,7 @@
 const productRepo = require('../../repositories/product.repository')
 const categoryRepo = require('../../repositories/category.repository')
 const AppError = require('../../utils/app-error')
+const cacheService = require('../cache.service')
 
 class AdminProductService {
   async getList(params = {}) {
@@ -27,18 +28,22 @@ class AdminProductService {
   }
 
   async create(data) {
-    return productRepo.create(data)
+    const product = await productRepo.create(data)
+    await cacheService.invalidateProduct(product.id)
+    return product
   }
 
   async update(id, data) {
     const updated = await productRepo.update(id, data)
     if (!updated) throw new Error('商品不存在')
+    await cacheService.invalidateProduct(id)
     return updated
   }
 
   async delete(id) {
     const deleted = await productRepo.delete(id)
     if (!deleted) throw new Error('商品不存在')
+    await cacheService.invalidateProduct(id)
     return true
   }
 
@@ -66,6 +71,7 @@ class AdminProductService {
         continue
       }
       await productRepo.update(id, { stock: Number(stock) })
+      await cacheService.invalidateProduct(id)
       results.updated++
     }
 

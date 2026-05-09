@@ -15,7 +15,11 @@ function _ensureReady() {
 }
 
 function _tableName() {
-  return config.db.table || 'app_records'
+  const tableName = config.db.table || 'app_records'
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+    throw new Error('[DB] Invalid DB_TABLE value')
+  }
+  return tableName
 }
 
 function _parsePayload(payload) {

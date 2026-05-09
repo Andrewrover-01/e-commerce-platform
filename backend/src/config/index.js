@@ -2,6 +2,20 @@
 
 require('dotenv').config()
 
+function _normalizeDbType(type) {
+  const raw = String(type || 'memory').toLowerCase()
+  if (['postgres', 'postgresql', 'pg'].includes(raw)) return 'postgres'
+  if (['mysql', 'mariadb'].includes(raw)) return 'mysql'
+  return raw
+}
+
+function _defaultDbPort(dbType) {
+  if (dbType === 'postgres') return 5432
+  return 3306
+}
+
+const dbType = _normalizeDbType(process.env.DB_TYPE || 'memory')
+
 const config = {
   port: parseInt(process.env.PORT, 10) || 3001,
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -30,9 +44,9 @@ const config = {
 
   // Database config placeholder — swap in real values when adding a DB adapter
   db: {
-    type: process.env.DB_TYPE || 'memory',
+    type: dbType,
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT, 10) || 3306,
+    port: parseInt(process.env.DB_PORT, 10) || _defaultDbPort(dbType),
     name: process.env.DB_NAME || 'ecommerce',
     user: process.env.DB_USER || '',
     password: process.env.DB_PASSWORD || '',

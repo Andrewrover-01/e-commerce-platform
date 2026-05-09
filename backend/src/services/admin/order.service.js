@@ -7,6 +7,8 @@ const smsService = require('../integrations/sms.service')
 const userRepo = require('../../repositories/user.repository')
 const { ORDER_STATUS } = require('../../models/order.model')
 const AppError = require('../../utils/app-error')
+const queueService = require('../queue.service')
+const logEventService = require('../log-event.service')
 
 async function _getUserPhone(userId) {
   const user = await userRepo.findById(userId)
@@ -37,8 +39,21 @@ class AdminOrderService {
 
   async updateStatus(id, status) {
     if (!Object.values(ORDER_STATUS).includes(status)) throw new Error('无效的订单状态')
+    const order = await this.getById(id)
     const updated = await orderRepo.update(id, { status })
     if (!updated) throw new Error('订单不存在')
+    await queueService.publishOrderEvent('order_status_updated', {
+      orderId: order.id,
+      orderNo: order.orderNo,
+      userId: order.userId,
+      status,
+    })
+    await logEventService.record({
+      level: 'info',
+      event: 'order_status_updated',
+      message: `订单 ${order.orderNo} 状态更新为 ${status}`,
+      payload: { orderId: order.id, status },
+    })
     return updated
   }
 
@@ -62,6 +77,20 @@ class AdminOrderService {
       trackingNo: String(trackingNo).trim(),
     })
 
+    await queueService.publishOrderEvent('order_shipped', {
+      orderId: order.id,
+      orderNo: order.orderNo,
+      userId: order.userId,
+      status: ORDER_STATUS.SHIPPED,
+      trackingNo: String(trackingNo).trim(),
+    })
+    await logEventService.record({
+      level: 'info',
+      event: 'order_shipped',
+      message: `订单 ${order.orderNo} 已发货`,
+      payload: { orderId: order.id, trackingNo: String(trackingNo).trim() },
+    })
+
     return updated
   }
 
@@ -77,6 +106,19 @@ class AdminOrderService {
 
     const phone = await _getUserPhone(order.userId)
     await smsService.sendTemplate(phone, 'ORDER_DELIVERED', { orderNo: order.orderNo })
+
+    await queueService.publishOrderEvent('order_delivered', {
+      orderId: order.id,
+      orderNo: order.orderNo,
+      userId: order.userId,
+      status: ORDER_STATUS.DELIVERED,
+    })
+    await logEventService.record({
+      level: 'info',
+      event: 'order_delivered',
+      message: `订单 ${order.orderNo} 已完成`,
+      payload: { orderId: order.id },
+    })
 
     return updated
   }
@@ -111,6 +153,20 @@ class AdminOrderService {
 
     const phone = await _getUserPhone(order.userId)
     await smsService.sendTemplate(phone, 'ORDER_CANCELLED', { orderNo: order.orderNo })
+
+    await queueService.publishOrderEvent('order_cancelled_by_admin', {
+      orderId: order.id,
+      orderNo: order.orderNo,
+      userId: order.userId,
+      status: ORDER_STATUS.CANCELLED,
+      reason: reason || '',
+    })
+    await logEventService.record({
+      level: 'warn',
+      event: 'order_cancelled_by_admin',
+      message: `订单 ${order.orderNo} 被管理员取消`,
+      payload: { orderId: order.id, reason: reason || '' },
+    })
 
     return updated
   }

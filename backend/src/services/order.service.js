@@ -9,6 +9,8 @@ const promotionService = require('./promotion.service')
 const smsService = require('./integrations/sms.service')
 const userRepo = require('../repositories/user.repository')
 const { ORDER_STATUS } = require('../models/order.model')
+const queueService = require('./queue.service')
+const logEventService = require('./log-event.service')
 
 async function _getUserPhone(userId) {
   const user = await userRepo.findById(userId)
@@ -93,6 +95,20 @@ class OrderService {
     const phone = await _getUserPhone(userId)
     await smsService.sendTemplate(phone, 'ORDER_PLACED', { orderNo, expireHours: 24 })
 
+    await queueService.publishOrderEvent('order_created', {
+      orderId: order.id,
+      orderNo: order.orderNo,
+      userId,
+      payAmount: order.payAmount,
+      status: order.status,
+    })
+    await logEventService.record({
+      level: 'info',
+      event: 'order_created',
+      message: `订单 ${order.orderNo} 创建成功`,
+      payload: { orderId: order.id, userId, payAmount: order.payAmount },
+    })
+
     return order
   }
 
@@ -128,6 +144,19 @@ class OrderService {
 
     const phone = await _getUserPhone(userId)
     await smsService.sendTemplate(phone, 'ORDER_CANCELLED', { orderNo: order.orderNo })
+
+    await queueService.publishOrderEvent('order_cancelled', {
+      orderId: order.id,
+      orderNo: order.orderNo,
+      userId,
+      status: ORDER_STATUS.CANCELLED,
+    })
+    await logEventService.record({
+      level: 'info',
+      event: 'order_cancelled',
+      message: `订单 ${order.orderNo} 已取消`,
+      payload: { orderId: order.id, userId },
+    })
 
     return updated
   }
