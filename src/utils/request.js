@@ -3,7 +3,8 @@ import axios from 'axios'
 const request = axios.create({
   // Backend API base URL — update to your deployed URL in production.
   // In development the backend runs on port 3001 (cd backend && npm run dev).
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001',
+  // For mock data, use empty string to access frontend public directory
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 10000,
 })
 
