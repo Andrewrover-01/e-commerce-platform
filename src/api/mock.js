@@ -1,25 +1,21 @@
 import request from '@/utils/request'
 
-const MOCK_DELAY = 200
+function extractData(res) {
+  return res.data?.data ?? res.data ?? []
+}
 
-let categoriesCache = null
-
-function delay(ms = MOCK_DELAY) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+function extractItem(res) {
+  return res.data?.data ?? res.data
 }
 
 async function loadCategories() {
-  if (categoriesCache) return categoriesCache
-  const { data } = await request.get('/mock/categories.json')
-  categoriesCache = data
-  return categoriesCache
+  const res = await request.get('/api/v1/categories')
+  return extractData(res)
 }
 
 async function loadProducts() {
-  const { data } = await request.get('/mock/products.json', {
-    params: { _t: Date.now() }
-  })
-  return data
+  const res = await request.get('/api/v1/products')
+  return extractData(res)
 }
 
 export async function getCategories() {
@@ -27,97 +23,33 @@ export async function getCategories() {
 }
 
 export async function getProducts(params = {}) {
-  await delay()
-  const products = await loadProducts()
-  let list = [...products]
+  const { category, keyword, sort, page = 1, pageSize = 12 } = params
 
-  if (params.category) {
-    list = list.filter(p => p.category === params.category || p.categoryId === Number(params.categoryId))
-  }
+  const queryParams = { page, pageSize }
+  if (category) queryParams.category = category
+  if (keyword) queryParams.keyword = keyword
+  if (sort) queryParams.sort = sort
 
-  if (params.keyword) {
-    const kw = String(params.keyword).toLowerCase()
-    list = list.filter(p => p.name.toLowerCase().includes(kw) || p.brand.toLowerCase().includes(kw))
-  }
-
-  if (params.sort === 'price_asc') list.sort((a, b) => a.price - b.price)
-  else if (params.sort === 'price_desc') list.sort((a, b) => b.price - a.price)
-  else if (params.sort === 'sales') list.sort((a, b) => b.sales - a.sales)
-  else if (params.sort === 'rating') list.sort((a, b) => b.rating - a.rating)
-  else if (params.sort === 'newest') list.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || b.id - a.id)
-
-  const page = Number(params.page) || 1
-  const pageSize = Number(params.pageSize) || 12
-  const total = list.length
-  const paginated = list.slice((page - 1) * pageSize, page * pageSize)
-  return { list: paginated, total, page, pageSize }
+  const res = await request.get('/api/v1/products', { params: queryParams })
+  return extractItem(res)
 }
 
 export async function getProductById(id) {
-  await delay()
-  const products = await loadProducts()
-  const product = products.find(p => p.id === Number(id))
-
-  if (!product) {
-    throw new Error('商品不存在')
-  }
-
-  const promotionTags = []
-  const now = new Date()
-  const endTime = new Date(now.getTime() + Math.random() * 3600000 * 24 * 3).toISOString()
-
-  if (product.isHot) {
-    promotionTags.push({ type: 'flash', text: '限时特惠' })
-  }
-  if (product.isNew) {
-    promotionTags.push({ type: 'new', text: '新品上市' })
-  }
-  if (product.price < product.originalPrice * 0.9) {
-    promotionTags.push({ type: 'discount', text: '超值折扣' })
-  }
-  if (product.sales > 10000) {
-    promotionTags.push({ type: 'gift', text: '买赠好礼' })
-  }
-  if (Math.random() > 0.5) {
-    promotionTags.push({ type: 'full_reduction', text: '满减优惠' })
-  }
-
-  return {
-    ...product,
-    images: [
-      product.image,
-      `https://picsum.photos/300/300?random=${id}0`,
-      `https://picsum.photos/300/300?random=${id}1`,
-      `https://picsum.photos/300/300?random=${id}2`
-    ],
-    specs: [
-      { label: '品牌', value: product.brand },
-      { label: '类别', value: product.category },
-      { label: '库存', value: `${product.stock}件` }
-    ],
-    reviews: [
-      { id: 1, user: '用户***001', rating: 5, content: '非常好用，物超所值，强烈推荐！', date: '2024-01-15', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user1' },
-      { id: 2, user: '买家***abc', rating: 4, content: '包装很好，发货很快，质量不错', date: '2024-01-10', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user2' },
-      { id: 3, user: '匿名用户', rating: 5, content: '京东自营，放心购买，下次还会再来', date: '2024-01-08', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user3' }
-    ],
-    promotion: {
-      tags: promotionTags,
-      endTime: endTime
-    }
-  }
+  const res = await request.get(`/api/v1/products/${id}`)
+  return extractItem(res)
 }
 
 export async function getFlashSaleProducts() {
-  const products = await loadProducts()
-  return products.filter(p => p.isHot).slice(0, 6)
+  const res = await request.get('/api/v1/products/flash-sale')
+  return extractData(res)
 }
 
 export async function getHotProducts() {
-  const products = await loadProducts()
-  return [...products].sort((a, b) => b.sales - a.sales).slice(0, 8)
+  const res = await request.get('/api/v1/products/hot')
+  return extractData(res)
 }
 
 export async function getNewProducts() {
-  const products = await loadProducts()
-  return products.filter(p => p.isNew).slice(0, 4)
+  const res = await request.get('/api/v1/products/new')
+  return extractData(res)
 }

@@ -10,6 +10,7 @@ const { connect } = require('./config/database')
 const routes = require('./routes')
 const errorMiddleware = require('./middlewares/error.middleware')
 const { apiRateLimiter, writeLimiter } = require('./middlewares/ratelimit.middleware')
+const { seedDatabase } = require('./seed/init-data')
 
 const app = express()
 
@@ -66,6 +67,7 @@ app.use(errorMiddleware)
 // ── Start server ─────────────────────────────────────────────────────
 async function start() {
   await connect()
+  await seedDatabase()
   app.listen(config.port, () => {
     console.log(`[Server] 运行在 http://localhost:${config.port}  (${config.nodeEnv})`)
     console.log(`[Server] API 文档: http://localhost:${config.port}/api/v1`)
