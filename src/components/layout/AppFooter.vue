@@ -25,8 +25,8 @@
         <div class="footer-body">
           <!-- 品牌区 -->
           <div class="footer-brand">
-            <div class="footer-logo">京东</div>
-            <p class="footer-brand-desc">京东是中国最大的自营电商企业，提供正品、低价、快速配送服务。</p>
+            <div class="footer-logo">志康</div>
+            <p class="footer-brand-desc">志康购物致力于提供正品、低价、快速配送服务。</p>
             <div class="footer-social">
               <a href="#" class="social-link" title="微信">💬</a>
               <a href="#" class="social-link" title="微博">🐦</a>
@@ -57,7 +57,7 @@
           <a v-for="lnk in bottomLinks" :key="lnk" href="#">{{ lnk }}</a>
         </div>
         <p class="copyright">
-          Copyright © 2004–{{ currentYear }} 京东 JD.com 版权所有 |
+          Copyright © 2004–{{ currentYear }} 志康购物 版权所有 |
           本项目为仿制学习项目，非商业用途
         </p>
       </div>
@@ -83,11 +83,11 @@ const footerLinks = [
   },
   {
     title: '配送方式',
-    links: ['上门自提', '211限时达', '配送服务查询', '海外配送', '京东物流'],
+    links: ['上门自提', '211限时达', '配送服务查询', '海外配送', '志康物流'],
   },
   {
     title: '支付方式',
-    links: ['货到付款', '在线支付', '分期付款', '京东白条', '礼品卡'],
+    links: ['货到付款', '在线支付', '分期付款', '志康白条', '礼品卡'],
   },
   {
     title: '售后服务',
@@ -95,12 +95,12 @@ const footerLinks = [
   },
   {
     title: '特色服务',
-    links: ['夺宝岛', 'DIY装机', '延保服务', '京东E卡', '京东超市'],
+    links: ['夺宝岛', 'DIY装机', '延保服务', '志康E卡', '志康超市'],
   },
 ]
 
 const bottomLinks = [
-  '关于京东', '联系我们', '联系客服', '商家合作', '诚聘英才',
+  '关于志康购物', '联系我们', '联系客服', '商家合作', '诚聘英才',
   '投资者关系', '网站地图', '营业执照', '隐私政策',
 ]
 </script>
