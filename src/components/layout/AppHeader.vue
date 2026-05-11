@@ -3,7 +3,7 @@
     <!-- 顶部工具栏 -->
     <div class="header-top">
       <div class="container flex-between">
-        <span class="welcome">欢迎来到京东商城！</span>
+        <span class="welcome">欢迎来到志康购物！</span>
         <nav class="header-nav">
           <template v-if="isLoggedIn">
             <span class="user-greeting">
@@ -21,9 +21,9 @@
           <span class="nav-divider">|</span>
           <router-link to="/user" class="nav-link-btn">我的订单</router-link>
           <span class="nav-divider">|</span>
-          <router-link to="/user" class="nav-link-btn">我的京东</router-link>
+          <router-link to="/user" class="nav-link-btn">我的志康</router-link>
           <span class="nav-divider">|</span>
-          <a href="#" class="nav-link-btn">京东会员</a>
+          <a href="#" class="nav-link-btn">志康会员</a>
           <span class="nav-divider">|</span>
           <a href="#" class="nav-link-btn">企业采购</a>
           <span class="nav-divider">|</span>
@@ -38,8 +38,8 @@
     <div class="header-main">
       <div class="container flex-between">
         <!-- Logo -->
-        <router-link to="/" class="logo" aria-label="京东首页">
-          <span class="logo-jd">京东</span>
+        <router-link to="/" class="logo" aria-label="志康购物首页">
+          <span class="logo-jd">志康</span>
           <span class="logo-slogan">多·快·好·省</span>
         </router-link>
 

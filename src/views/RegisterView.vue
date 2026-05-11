@@ -2,7 +2,7 @@
   <div class="auth-page">
     <el-card class="auth-card" shadow="never">
       <div class="auth-logo" @click="$router.push('/')">
-        <span class="logo-jd">京东</span>
+        <span class="logo-jd">志康</span>
       </div>
       <h2 class="auth-title">免费注册</h2>
 
