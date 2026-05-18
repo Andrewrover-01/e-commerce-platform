@@ -1,15 +1,15 @@
 # 电商平台后端服务
 
-Node.js + Express RESTful API，为用户端和管理端提供统一数据接口。
+后端采用模块化设计（控制层、服务层、数据访问层），可基于 Spring Boot / Node.js / Go 等技术栈实现，并提供 RESTful API 或 GraphQL 接口。
 
 ---
 
-## 技术栈
+## 技术栈（可选实现）
 
 | 层次 | 技术 |
 |---|---|
-| 运行时 | Node.js ≥ 18 |
-| Web 框架 | Express 4 |
+| 可选运行时/框架 | Spring Boot / Node.js（Express）/ Go（Gin 等） |
+| API 风格 | RESTful API 或 GraphQL |
 | 认证 | JWT (jsonwebtoken) + bcryptjs |
 | 参数校验 | express-validator |
 | 安全 | helmet, cors |
