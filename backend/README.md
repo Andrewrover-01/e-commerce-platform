@@ -1,6 +1,7 @@
 # 电商平台后端服务
 
-后端采用模块化设计（控制层、服务层、数据访问层），当前仓库实现为 Node.js + Express，提供 RESTful API；架构可按相同分层方式迁移到 Spring Boot / Go，GraphQL 作为可选扩展方向。
+后端采用模块化设计（控制层、服务层、数据访问层）。
+当前仓库实现为 Node.js + Express，提供 RESTful API；可按相同分层方式迁移到 Spring Boot 或 Go + Gin，GraphQL 作为可选扩展方向。
 
 ---
 
@@ -8,7 +9,7 @@
 
 | 层次 | 技术 |
 |---|---|
-| 运行时/框架 | 当前：Node.js（Express）；可迁移：Spring Boot / Go（Gin） |
+| 运行时/框架 | 当前：Node.js + Express；可迁移：Spring Boot / Go + Gin |
 | API 风格 | RESTful API 或 GraphQL |
 | 认证 | JWT（当前实现：jsonwebtoken + bcryptjs） |
 | 参数校验 | 请求参数校验（当前实现：express-validator） |
