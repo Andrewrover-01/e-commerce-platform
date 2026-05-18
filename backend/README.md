@@ -8,7 +8,7 @@
 
 | 层次 | 技术 |
 |---|---|
-| 运行时/框架 | 当前：Node.js（Express）｜可迁移：Spring Boot / Go（Gin 等） |
+| 运行时/框架 | 当前：Node.js（Express）| 可迁移：Spring Boot / Go（Gin 等） |
 | API 风格 | RESTful API 或 GraphQL |
 | 认证 | JWT（当前实现：jsonwebtoken + bcryptjs） |
 | 参数校验 | 请求参数校验（当前实现：express-validator） |
