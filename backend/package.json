@@ -1,7 +1,7 @@
 {
   "name": "e-commerce-backend",
   "version": "1.0.0",
-  "description": "电商平台后端服务 - 模块化架构（Spring Boot / Node.js / Go）支持 RESTful API 或 GraphQL",
+  "description": "电商平台后端服务 - 模块化架构（当前实现 Node.js，可迁移 Spring Boot / Go）支持 RESTful API 或 GraphQL",
   "type": "commonjs",
   "main": "src/app.js",
   "scripts": {
